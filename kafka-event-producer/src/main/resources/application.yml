@@ -1,0 +1,16 @@
+spring:
+  profiles:
+    active: local
+  kafka:
+    producer:
+      bootstrap-servers: localhost:9092
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      properties:
+        acks: 1
+        retries: 5
+    admin:
+      properties:
+        bootstrap.servers: localhost:9092
+    template:
+      default-topic: item-topic

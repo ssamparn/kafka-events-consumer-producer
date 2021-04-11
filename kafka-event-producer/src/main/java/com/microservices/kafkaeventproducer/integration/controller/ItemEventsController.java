@@ -28,7 +28,6 @@ public class ItemEventsController {
 //      itemEvent.setItemEventType(ItemEventType.CREATE);
 //      producer.sendItemEventAsync(itemEvent);
 
-//      Invoke Kafka Producer in an asynchronous way
         itemEvent.setItemEventType(ItemEventType.CREATE);
         producer.sendItemEventAsyncAnotherApproach(itemEvent);
 

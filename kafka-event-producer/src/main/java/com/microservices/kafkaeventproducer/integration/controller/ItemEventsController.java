@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.microservices.kafkaeventproducer.domain.ItemEvent;
 import com.microservices.kafkaeventproducer.domain.ItemEventType;
 import com.microservices.kafkaeventproducer.producer.ItemEventProducer;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,9 +13,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.validation.Valid;
-import java.util.concurrent.ExecutionException;
-
 @RestController
 @RequiredArgsConstructor
 public class ItemEventsController {
@@ -22,18 +20,9 @@ public class ItemEventsController {
     private final ItemEventProducer producer;
 
     @PostMapping("/v1/item-event")
-    public ResponseEntity<ItemEvent> postItemEvent(@RequestBody @Valid ItemEvent itemEvent) throws JsonProcessingException, ExecutionException, InterruptedException {
-
-//      Invoke Kafka Producer in an asynchronous way
-//      itemEvent.setItemEventType(ItemEventType.CREATE);
-//      producer.sendItemEventAsync(itemEvent);
-
+    public ResponseEntity<ItemEvent> createItem(@RequestBody @Valid ItemEvent itemEvent) throws JsonProcessingException {
         itemEvent.setItemEventType(ItemEventType.CREATE);
-        producer.sendItemEventAsyncAnotherApproach(itemEvent);
-
-//      Invoke Kafka Producer in a synchronous way
-//      itemEvent.setItemEventType(ItemEventType.CREATE);
-//      producer.sendItemEventSync(itemEvent);
+        producer.sendItemEventAsync(itemEvent);
 
         return new ResponseEntity<>(itemEvent, HttpStatus.CREATED);
     }
@@ -46,7 +35,7 @@ public class ItemEventsController {
         }
 
         itemEvent.setItemEventType(ItemEventType.UPDATE);
-        producer.sendItemEventAsyncAnotherApproach(itemEvent);
+        producer.sendItemEventAsync(itemEvent);
 
         return new ResponseEntity<>(itemEvent, HttpStatus.OK);
     }

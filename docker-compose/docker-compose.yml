@@ -1,0 +1,111 @@
+version: '3.8'
+
+services:
+  zookeeper-1:
+    image: confluentinc/cp-zookeeper:latest
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - 22181:2181
+    volumes:
+      - "./volumes/zookeeper/data:/var/lib/zookeeper/data"
+      - "./volumes/zookeeper/transactions:/var/lib/zookeeper/log"
+    networks:
+      - kafka-events-consumer-producer
+
+  zookeeper-2:
+    image: confluentinc/cp-zookeeper:latest
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - 32181:2181
+    volumes:
+      - "./volumes/zookeeper/data:/var/lib/zookeeper/data"
+      - "./volumes/zookeeper/transactions:/var/lib/zookeeper/log"
+    networks:
+      - kafka-events-consumer-producer
+
+  kafka-1:
+    image: confluentinc/cp-kafka:latest
+    depends_on:
+      - zookeeper-1
+      - zookeeper-2
+    ports:
+      - 29092:29092
+    volumes:
+      - "./volumes/kafka/broker-1:/var/lib/kafka/data"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper-1:2181,zookeeper-2:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-1:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    networks:
+      - kafka-events-consumer-producer
+
+  kafka-2:
+    image: confluentinc/cp-kafka:latest
+    depends_on:
+      - zookeeper-1
+      - zookeeper-2
+    ports:
+      - 39092:39092
+    volumes:
+      - "./volumes/kafka/broker-2:/var/lib/kafka/data"
+    environment:
+      KAFKA_BROKER_ID: 2
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper-1:2181,zookeeper-2:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-2:9092,PLAINTEXT_HOST://localhost:39092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    networks:
+      - kafka-events-consumer-producer
+
+  kafka-topics-generator:
+    image: confluentinc/cp-kafka:latest
+    entrypoint: ['/bin/sh', '-c']
+    depends_on:
+      - kafka-1
+      - kafka-2
+    networks:
+      - kafka-events-consumer-producer
+    command: |
+      "
+      # block until kafka is reachable
+      echo -e 'Waiting for 25 seconds'
+      sleep 25s &&
+      kafka-topics --bootstrap-server kafka-1:9092 --list
+
+      echo -e 'Deleting Previously Created Kafka Topics'
+      kafka-topics --bootstrap-server kafka-1:9092 --topic users --delete --if-exists
+      kafka-topics --bootstrap-server kafka-1:9092 --topic item-event-topic --delete --if-exists
+
+      echo -e 'Creating New Kafka Topics'
+      kafka-topics --bootstrap-server kafka-1:9092 --create --if-not-exists --topic users --replication-factor 1 --partitions 1
+      kafka-topics --bootstrap-server kafka-1:9092 --create --if-not-exists --topic item-event-topic --replication-factor 1 --partitions 1
+
+      echo -e 'Successfully created the following topics:'
+      kafka-topics --bootstrap-server kafka-1:9092 --list"
+
+  control-center:
+    image: confluentinc/cp-enterprise-control-center:latest
+    hostname: control-center
+    depends_on:
+      - kafka-1
+      - kafka-2
+    ports:
+      - "9021:9021"
+    environment:
+      CONTROL_CENTER_BOOTSTRAP_SERVERS: 'kafka-1:9092'
+      CONTROL_CENTER_REPLICATION_FACTOR: 1
+      PORT: 9021
+    networks:
+      - kafka-events-consumer-producer
+
+networks:
+  kafka-events-consumer-producer:
+    driver: bridge

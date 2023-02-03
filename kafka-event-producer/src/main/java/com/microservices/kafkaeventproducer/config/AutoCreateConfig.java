@@ -11,9 +11,9 @@ import org.springframework.kafka.config.TopicBuilder;
 public class AutoCreateConfig {
 
     @Bean
-    public NewTopic itemTopic() {
-        return TopicBuilder.name("item-topic")
-                .partitions(2)
+    public NewTopic itemEventTopic() {
+        return TopicBuilder.name("item-event-topic")
+                .partitions(1)
                 .replicas(1)
                 .build();
     }

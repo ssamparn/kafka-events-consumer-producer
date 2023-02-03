@@ -1,12 +1,12 @@
 package com.microservices.kafkaeventproducer.domain;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
 import java.util.UUID;
 
 @Data
@@ -16,6 +16,8 @@ import java.util.UUID;
 public class ItemEvent {
 
     private UUID eventId;
+    @NotNull
+    @Valid
+    private Item item;
     private ItemEventType itemEventType;
-    @NotNull @Valid private Item item;
 }

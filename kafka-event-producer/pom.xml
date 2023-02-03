@@ -6,20 +6,18 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>2.4.4</version>
-		<relativePath/> <!-- lookup parent from repository -->
+		<version>3.0.0</version>
+		<relativePath/>
 	</parent>
 
 	<groupId>com.microservices</groupId>
 	<artifactId>kafka-event-producer</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
-
+	<version>1.0.0</version>
 	<name>Kafka Event Producer</name>
-
-	<description>Kafka Event Producer</description>
+	<description>Kafka Event Producer with Spring Boot</description>
 
 	<properties>
-		<java.version>11</java.version>
+		<java.version>17</java.version>
 	</properties>
 
 	<dependencies>

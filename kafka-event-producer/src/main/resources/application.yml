@@ -1,9 +1,12 @@
+server:
+  port: 8080
+
 spring:
   profiles:
     active: local
   kafka:
     producer:
-      bootstrap-servers: localhost:9092
+      bootstrap-servers: localhost:29092
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
       properties:
@@ -11,6 +14,6 @@ spring:
         retries: 5
     admin:
       properties:
-        bootstrap.servers: localhost:9092
+        bootstrap.servers: localhost:29092
     template:
-      default-topic: item-topic
+      default-topic: item-event-topic

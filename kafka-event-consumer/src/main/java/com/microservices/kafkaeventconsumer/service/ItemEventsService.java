@@ -1,10 +1,10 @@
 package com.microservices.kafkaeventconsumer.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microservices.kafkaeventconsumer.entity.ItemEntity;
 import com.microservices.kafkaeventconsumer.entity.ItemEventEntity;
+import com.microservices.kafkaeventconsumer.entity.ItemEventTypeEntity;
 import com.microservices.kafkaeventconsumer.repository.ItemEventsRepository;
+import com.microservices.kafkaevents.dto.ItemEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,14 +18,10 @@ import java.util.Optional;
 public class ItemEventsService {
 
     @Autowired
-    private ObjectMapper objectMapper;
-
-
-    @Autowired
     private ItemEventsRepository itemEventsRepository;
 
-    public void processItemEvent(ConsumerRecord<String, String> consumerRecord) throws JsonProcessingException {
-        ItemEventEntity inputItemEvent = objectMapper.readValue(consumerRecord.value(), ItemEventEntity.class);
+    public void processItemEvent(ConsumerRecord<String, ItemEvent> consumerRecord) {
+        ItemEventEntity inputItemEvent = mapToItemEventEntity(consumerRecord.value());
         log.info("itemEventEntity: {}", inputItemEvent);
 
         switch (inputItemEvent.getItemEventType()) {
@@ -43,6 +39,19 @@ public class ItemEventsService {
             default:
                 log.info("Invalid Item Event Type");
         }
+    }
+
+    private ItemEventEntity mapToItemEventEntity(ItemEvent event) {
+        ItemEventEntity entity = new ItemEventEntity();
+        entity.setEventId(event.getEventId());
+        entity.setItem(ItemEntity.builder()
+                        .itemId(event.getItem().getItemId())
+                        .itemName(event.getItem().getItemName())
+                        .itemOriginator(event.getItem().getItemOriginator())
+                .build());
+        entity.setItemEventType(ItemEventTypeEntity.valueOf(event.getItemEventType().toString()));
+
+        return entity;
     }
 
     private ItemEventEntity updatedItemEvent(ItemEventEntity inputItemEvent, Optional<ItemEventEntity> itemEventEntityOptional) {

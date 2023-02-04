@@ -1,21 +1,28 @@
+server:
+  port: 7070
 spring:
   profiles:
     active: local
+---
+spring:
+  config:
+    activate:
+      on-profile: local
   kafka:
     consumer:
-      bootstrap-servers: localhost:9092
+      bootstrap-servers: localhost:29092
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       group-id: item-events-listener-group
     # producer configuration only to be used in integration tests
-    producer:
-      bootstrap-servers: localhost:9092
-      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+#    producer:
+#      bootstrap-servers: localhost:29092
+#      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+#      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
     template:
-      default-topic: item-topic
+      default-topic: item-event-topic
   datasource:
-    url: jdbc:h2:mem:testdb
+    url: jdbc:h2:mem:testdb;DB_CLOSE_ON_EXIT=FALSE
     driver-class-name: org.h2.Driver
     username: sa
     password: password
@@ -23,8 +30,7 @@ spring:
     database: h2
     database-platform: org.hibernate.dialect.H2Dialect
     generate-ddl: true
+    show-sql: true
   h2:
     console:
       enabled: true
-server:
-  port: 9090

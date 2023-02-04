@@ -1,9 +1,8 @@
 package com.microservices.kafkaeventproducer.integration.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.microservices.kafkaeventproducer.domain.ItemEvent;
-import com.microservices.kafkaeventproducer.domain.ItemEventType;
-import com.microservices.kafkaeventproducer.producer.ItemEventProducer;
+import com.microservices.kafkaeventproducer.service.ItemEventsService;
+import com.microservices.kafkaevents.dto.ItemEvent;
+import com.microservices.kafkaevents.dto.ItemEventType;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -17,25 +16,25 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class ItemEventsController {
 
-    private final ItemEventProducer producer;
+    private final ItemEventsService itemEventsService;
 
     @PostMapping("/v1/item-event")
-    public ResponseEntity<ItemEvent> createItem(@RequestBody @Valid ItemEvent itemEvent) throws JsonProcessingException {
+    public ResponseEntity<ItemEvent> newItem(@RequestBody @Valid ItemEvent itemEvent) {
         itemEvent.setItemEventType(ItemEventType.CREATE);
-        producer.sendItemEventAsync(itemEvent);
+        ItemEvent emittedItem = itemEventsService.createNewItem(itemEvent);
 
-        return new ResponseEntity<>(itemEvent, HttpStatus.CREATED);
+        return new ResponseEntity<>(emittedItem, HttpStatus.CREATED);
     }
 
     @PutMapping("/v1/item-event")
-    public ResponseEntity<?> updateItemEvent(@RequestBody @Valid ItemEvent itemEvent) throws JsonProcessingException {
+    public ResponseEntity<?> updateItemEvent(@RequestBody @Valid ItemEvent itemEvent) {
 
         if (itemEvent.getEventId() == null) {
             return new ResponseEntity<>("Missing event Id", HttpStatus.BAD_REQUEST);
         }
 
         itemEvent.setItemEventType(ItemEventType.UPDATE);
-        producer.sendItemEventAsync(itemEvent);
+        itemEventsService.createNewItem(itemEvent);
 
         return new ResponseEntity<>(itemEvent, HttpStatus.OK);
     }

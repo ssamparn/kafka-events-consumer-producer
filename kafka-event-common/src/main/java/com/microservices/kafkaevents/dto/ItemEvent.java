@@ -1,4 +1,4 @@
-package com.microservices.kafkaeventproducer.domain;
+package com.microservices.kafkaevents.dto;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;

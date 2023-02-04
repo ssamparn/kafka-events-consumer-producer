@@ -29,6 +29,7 @@ services:
 
   kafka-1:
     image: confluentinc/cp-kafka:latest
+    hostname: kafka-1
     depends_on:
       - zookeeper-1
       - zookeeper-2
@@ -48,6 +49,7 @@ services:
 
   kafka-2:
     image: confluentinc/cp-kafka:latest
+    hostname: kafka-2
     depends_on:
       - zookeeper-1
       - zookeeper-2

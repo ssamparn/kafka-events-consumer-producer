@@ -1,5 +1,5 @@
 .idea
-docker-compose/volumes
+docker-compose/single-node
 kafka-event-common/target
 kafka-event-consumer/target
 kafka-event-producer/target

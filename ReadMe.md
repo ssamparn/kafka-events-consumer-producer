@@ -2,6 +2,13 @@
 
 This repository has a sample implementation related to kafka producers/consumers using spring boot.
 
+```bash
+$ docker-compose -f kafka-single-node-setup.yml up
+```
+
+
+
+
 - [Setup-Kafka](provide the link of the md file here)
 
 ## Securing your Kafka Cluster using SSL

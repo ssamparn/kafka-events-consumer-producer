@@ -15,7 +15,7 @@
     <artifactId>kafka-events-consumer-producer</artifactId>
     <version>1.0.0</version>
 
-    <name>Kafka Events Consumer Producer</name>
+    <name>Kafka Events Consumer Producer API Implementation - Parent</name>
     <packaging>pom</packaging>
 
     <properties>
@@ -31,9 +31,9 @@
     </properties>
 
     <modules>
-        <module>kafka-event-consumer</module>
-        <module>kafka-event-producer</module>
-        <module>kafka-event-common</module>
+        <module>kafka-events-consumer</module>
+        <module>kafka-events-producer</module>
+        <module>kafka-events-common</module>
     </modules>
 
 </project>

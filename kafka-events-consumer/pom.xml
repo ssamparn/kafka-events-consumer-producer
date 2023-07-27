@@ -12,7 +12,7 @@
 	<groupId>com.kafka.events</groupId>
 	<artifactId>kafka-events-consumer</artifactId>
 	<version>1.0.0</version>
-	<name>Kafka Events Consumer</name>
+	<name>Kafka Events - Consumer</name>
 	<packaging>jar</packaging>
 	<description>Kafka Events Consumer with Spring Boot</description>
 

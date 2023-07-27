@@ -12,7 +12,7 @@
 	<groupId>com.kafka.events</groupId>
 	<artifactId>kafka-events-producer</artifactId>
 	<version>1.0.0</version>
-	<name>Kafka Events Producer</name>
+	<name>Kafka Events - Producer</name>
 	<packaging>jar</packaging>
 	<description>Kafka Event Producer with Spring Boot</description>
 

@@ -1,5 +1,4 @@
-![kafka-events-consumer-producer]
-# kafka-events-consumer-producer
+# Kafka Events Consumer Producer API Implementation with Spring Boot and Spring Kafka
 
 This repository has a sample implementation related to kafka producers/consumers using spring boot.
 

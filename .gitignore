@@ -1,3 +1,4 @@
+.idea
 docker-compose/volumes
 kafka-event-common/target
 kafka-event-consumer/target

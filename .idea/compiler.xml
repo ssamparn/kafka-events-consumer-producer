@@ -10,6 +10,8 @@
         <module name="kafka-event-common" />
         <module name="kafka-event-producer" />
         <module name="kafka-event-consumer" />
+        <module name="kafka-events-consumer" />
+        <module name="kafka-events-producer" />
       </profile>
     </annotationProcessing>
   </component>
@@ -18,6 +20,8 @@
       <module name="kafka-event-common" options="-parameters" />
       <module name="kafka-event-consumer" options="-parameters" />
       <module name="kafka-event-producer" options="-parameters" />
+      <module name="kafka-events-consumer" options="-parameters" />
+      <module name="kafka-events-producer" options="-parameters" />
     </option>
   </component>
 </project>

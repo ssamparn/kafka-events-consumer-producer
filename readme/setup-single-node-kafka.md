@@ -1,4 +1,4 @@
-# Local kafka set up using Docker
+# Local kafka set up using Docker Compose
 
 ## Set up broker and zookeeper
 

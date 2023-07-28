@@ -3,7 +3,7 @@
 - Run this command and this will spin up a kafka cluster with 3 brokers.
 
 ```bash
-$ docker-compose -f docker-compose-multi-broker.yml up
+$ docker-compose -f kafka-cluster-setup.yml up
 ```
 
 - Create topic with the replication factor as 3

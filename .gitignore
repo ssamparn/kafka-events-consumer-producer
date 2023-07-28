@@ -1,5 +1,6 @@
 .idea
 workspace/single-node
+workspace/cluster
 kafka-event-common/target
 kafka-event-consumer/target
 kafka-event-producer/target

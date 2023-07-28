@@ -6,11 +6,9 @@ This repository has the complete code related to kafka producers/consumers using
 ## Kafka SetUp
 - [Setup-Kafka-Using-Docker](setup-single-node-kafka.md)
 
-
-
 - [Setup-Kafka](https://github.com/dilipsundarraj1/kafka-for-developers-using-spring-boot/blob/master/SetUpKafka.md)
 
-- [Setup-Kafka (Version 3)](SetUpKafka3.md)
+- [Setup-Kafka](kafka-commands.md)
 
 ## Securing your Kafka Cluster using SSL
 

@@ -15,7 +15,7 @@ public class ItemEventsService {
 
     public ItemEvent createNewItem(ItemEvent itemEvent) {
         itemEvent.setEventId(UUID.randomUUID());
-        this.eventsProducer.sendMessage(itemEvent);
+        this.eventsProducer.sendItemEvent(itemEvent);
 
         return itemEvent;
     }

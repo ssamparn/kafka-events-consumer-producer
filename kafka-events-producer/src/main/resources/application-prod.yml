@@ -1,13 +1,8 @@
-server:
-  port: 8080
-spring:
-  profiles:
-    active: local
 ---
 spring:
   config:
     activate:
-      on-profile: local
+      on-profile: prod
   kafka:
     producer:
       bootstrap-servers: localhost:9092,localhost:9093,localhost:9094

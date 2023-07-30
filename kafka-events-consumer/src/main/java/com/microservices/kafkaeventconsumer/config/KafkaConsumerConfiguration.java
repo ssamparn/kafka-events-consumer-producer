@@ -3,34 +3,25 @@ package com.microservices.kafkaeventconsumer.config;
 import com.microservices.kafkaevents.dto.ItemEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.kafka.ConcurrentKafkaListenerContainerFactoryConfigurer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
-import org.springframework.dao.RecoverableDataAccessException;
-import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
-import org.springframework.retry.RetryPolicy;
-import org.springframework.retry.backoff.FixedBackOffPolicy;
-import org.springframework.retry.policy.SimpleRetryPolicy;
-import org.springframework.retry.support.RetryTemplate;
 
 import java.util.HashMap;
 import java.util.Map;
 
 @Slf4j
-@EnableKafka
 @Configuration
 @Profile("local")
 public class KafkaConsumerConfiguration {
 
-    @Value("${spring.kafka.consumer.bootstrap-servers: localhost:29092}")
+    @Value("${spring.kafka.consumer.bootstrap-servers: localhost:9092}")
     private String bootstrapServers;
 
     @Value("${spring.kafka.consumer.group-id: item-events-listener-group}")
@@ -56,31 +47,6 @@ public class KafkaConsumerConfiguration {
 
         return kafkaContainerFactory;
     }
-
-//    @Bean
-//    public ConcurrentKafkaListenerContainerFactory<String, ItemEvent> kafkaListenerContainerFactory(ConcurrentKafkaListenerContainerFactoryConfigurer kafkaConfigurer) {
-//        ConcurrentKafkaListenerContainerFactory<Object, Object> kafkaContainerFactory = new ConcurrentKafkaListenerContainerFactory<>();
-//        kafkaConfigurer.configure(kafkaContainerFactory, consumerFactory);
-//        kafkaContainerFactory.setConcurrency(3);
-//        kafkaContainerFactory.setErrorHandler((exception, data) -> {
-//            log.info("Exception in ConsumerConfig: {} and record is: {}", exception.getMessage(), data);
-//        });
-//        kafkaContainerFactory.setRetryTemplate(createRetryTemplate());
-//        kafkaContainerFactory.setRecoveryCallback((context -> {
-//           if (context.getLastThrowable().getCause() instanceof RecoverableDataAccessException) {
-//               log.info("Inside the recoverable logic");
-//               ConsumerRecord<String, String> consumerRecord = (ConsumerRecord<String, String>) context.getAttribute("record");
-//               assert consumerRecord != null;
-//               recoveryService.handleRecovery(consumerRecord);
-//           } else {
-//               log.info("Inside the non recoverable logic");
-//               throw new RuntimeException(context.getLastThrowable().getMessage());
-//           }
-//           return null;
-//        }));
-//
-//        return kafkaContainerFactory;
-//    }
 
 //    @Bean
 //    public RetryTemplate createRetryTemplate() {

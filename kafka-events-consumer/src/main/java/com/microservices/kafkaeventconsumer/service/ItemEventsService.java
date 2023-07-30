@@ -5,9 +5,9 @@ import com.microservices.kafkaeventconsumer.entity.ItemEventEntity;
 import com.microservices.kafkaeventconsumer.entity.ItemEventTypeEntity;
 import com.microservices.kafkaeventconsumer.repository.ItemEventsRepository;
 import com.microservices.kafkaevents.dto.ItemEvent;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.RecoverableDataAccessException;
 import org.springframework.stereotype.Service;
 
@@ -15,10 +15,10 @@ import java.util.Optional;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class ItemEventsService {
 
-    @Autowired
-    private ItemEventsRepository itemEventsRepository;
+    private final ItemEventsRepository itemEventsRepository;
 
     public void processItemEvent(ConsumerRecord<String, ItemEvent> consumerRecord) {
         ItemEventEntity inputItemEvent = mapToItemEventEntity(consumerRecord.value());

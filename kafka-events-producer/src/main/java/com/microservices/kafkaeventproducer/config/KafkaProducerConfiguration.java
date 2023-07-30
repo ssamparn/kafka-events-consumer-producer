@@ -31,7 +31,7 @@ public class KafkaProducerConfiguration {
     public NewTopic itemEventTopic() {
         return TopicBuilder.name(topic)
                 .partitions(1)
-                .replicas(1)
+                .replicas(3)
                 .build();
     }
 

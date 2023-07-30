@@ -1,77 +1,103 @@
-//package com.microservices.kafkaeventproducer.unit.producer;
-//
-//import com.fasterxml.jackson.core.JsonProcessingException;
-//import com.fasterxml.jackson.databind.ObjectMapper;
-//import com.microservices.kafkaeventproducer.domain.Item;
-//import com.microservices.kafkaeventproducer.domain.ItemEvent;
-//import com.microservices.kafkaeventproducer.domain.ItemEventType;
-//import com.microservices.kafkaeventproducer.producer.ItemEventsProducer;
-//import org.apache.kafka.clients.producer.ProducerRecord;
-//import org.apache.kafka.clients.producer.RecordMetadata;
-//import org.apache.kafka.common.TopicPartition;
-//import org.junit.jupiter.api.BeforeEach;
-//import org.junit.jupiter.api.Test;
-//import org.junit.jupiter.api.extension.ExtendWith;
-//import org.mockito.InjectMocks;
-//import org.mockito.Mock;
-//import org.mockito.Spy;
-//import org.mockito.junit.jupiter.MockitoExtension;
-//import org.springframework.kafka.core.KafkaTemplate;
-//import org.springframework.kafka.support.SendResult;
-//import org.springframework.util.concurrent.SettableListenableFuture;
-//
-//import java.util.UUID;
-//
-//@ExtendWith(MockitoExtension.class)
-//class ItemEventsProducerUnitTest {
-//
-//    private ItemEvent itemEvent;
-//    private SettableListenableFuture listenableFuture;
-//    private ProducerRecord<String, String> producerRecord;
-//    private RecordMetadata recordMetadata;
-//    private SendResult<String, String> sendResult;
-//
-//    @Mock private KafkaTemplate<String, String> kafkaTemplate;
-//    @InjectMocks private ItemEventsProducer itemProducer;
-//    @Spy private ObjectMapper objectMapper = new ObjectMapper();
-//
-//    @BeforeEach
-//    void setUp() throws JsonProcessingException {
-//        itemEvent = ItemEvent.builder()
-//                .eventId(UUID.randomUUID())
-//                .item(Item.builder()
-//                        .itemId(UUID.randomUUID())
-//                        .itemName("Harry Potter")
-//                        .itemOriginator("JK Rowling")
-//                        .build())
-//                .itemEventType(ItemEventType.CREATE)
-//                .build();
-//
-//        listenableFuture = new SettableListenableFuture();
-//
-//        producerRecord = new ProducerRecord<>("item-topic", itemEvent.getEventId().toString(), objectMapper.writeValueAsString(itemEvent));
-//        recordMetadata = new RecordMetadata(new TopicPartition("item-topic", 1), 1, 1, 342, System.currentTimeMillis(), 1, 2);
-//        sendResult = new SendResult<>(producerRecord, recordMetadata);
-//    }
-//
-//    @Test
-//    void sendItemEventAnotherApproachTest_OnSuccess() throws JsonProcessingException, ExecutionException, InterruptedException {
-//        listenableFuture.set(sendResult);
-//        when(kafkaTemplate.send(isA(ProducerRecord.class))).thenReturn(listenableFuture);
-//
-//        ListenableFuture<SendResult<String, String>> listenableFuture = itemProducer.sendItemEventAsyncAnotherApproach(itemEvent);
-//
-//        SendResult<String, String> result = listenableFuture.get();
-//        assert result.getRecordMetadata().partition() == 1;
-//    }
-//
-//    @Test
-//    void sendItemEventAnotherApproachTest_OnFailure() {
-//        listenableFuture.setException(new RuntimeException("Exception calling kafka broker"));
-//        when(kafkaTemplate.send(isA(ProducerRecord.class))).thenReturn(listenableFuture);
-//
-//        Assertions.assertThrows(Exception.class,
-//                () -> itemProducer.sendItemEventAsyncAnotherApproach(itemEvent).get()
-//        );
-//    }
-//}
+package com.microservices.kafkaeventproducer.unit.producer;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.microservices.kafkaeventproducer.producer.ItemEventsProducer;
+import com.microservices.kafkaeventproducer.util.TestUtil;
+import com.microservices.kafkaevents.dto.ItemEvent;
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.clients.producer.RecordMetadata;
+import org.apache.kafka.common.TopicPartition;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.support.SendResult;
+import org.springframework.test.util.ReflectionTestUtils;
+
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.Mockito.when;
+
+@ExtendWith(MockitoExtension.class)
+class ItemEventsProducerUnitTest {
+
+    private ItemEvent itemEvent;
+    private ProducerRecord<String, ItemEvent> producerRecord;
+    private RecordMetadata recordMetadata;
+    private SendResult<String, ItemEvent> sendResult;
+
+    @Mock
+    private KafkaTemplate<String, ItemEvent> kafkaTemplate;
+    @InjectMocks
+    private ItemEventsProducer itemProducer;
+
+    @BeforeEach
+    void setUp() throws JsonProcessingException {
+        ReflectionTestUtils.setField(itemProducer, "topic", "item-event-topic");
+        itemEvent = TestUtil.newItemEventRecordWithItemEventId();
+
+        producerRecord = new ProducerRecord<>("item-event-topic", itemEvent.getEventId().toString(), itemEvent);
+        recordMetadata = new RecordMetadata(new TopicPartition("item-event-topic", 1), 1, 1, 342, System.currentTimeMillis(), 1, 2);
+        sendResult = new SendResult<>(producerRecord, recordMetadata);
+    }
+
+    @Test
+    void sendItemEventAnotherApproachTest_OnSuccess() {
+        CompletableFuture<SendResult<String, ItemEvent>> expectedCompletableFuture = CompletableFuture.supplyAsync(() -> sendResult);
+
+        when(kafkaTemplate.send(isA(ProducerRecord.class))).thenReturn(CompletableFuture.supplyAsync(() -> expectedCompletableFuture));
+
+        CompletableFuture<SendResult<String, ItemEvent>> actualCompletableFuture = itemProducer.sendItemEvent(itemEvent);
+
+        actualCompletableFuture.whenComplete((successResult, ex) -> {
+            if (ex != null) {
+                var exception = assertThrows(Exception.class, actualCompletableFuture::get);
+                assertEquals("Exception Calling Kafka", exception.getMessage());
+            } else {
+                // This code block will be executed in case of success
+                SendResult<String, ItemEvent> sendResult1;
+                try {
+                    sendResult1 = actualCompletableFuture.get();
+                } catch (InterruptedException | ExecutionException e) {
+                    throw new RuntimeException(e);
+                }
+                assert sendResult1.getRecordMetadata().partition() == 1;
+            }
+        });
+    }
+
+    @Test
+    void sendItemEventAnotherApproachTest_OnFailure() {
+        CompletableFuture<SendResult<String, ItemEvent>> expectedCompletableFuture = CompletableFuture.supplyAsync(() -> sendResult)
+                .thenApply((sendResult1) -> {
+                    throw new RuntimeException("Exception Calling Kafka");
+                });
+
+        when(kafkaTemplate.send(isA(ProducerRecord.class))).thenReturn(CompletableFuture.supplyAsync(() -> expectedCompletableFuture));
+
+        CompletableFuture<SendResult<String, ItemEvent>> actualCompletableFuture = itemProducer.sendItemEvent(itemEvent);
+
+        actualCompletableFuture.whenComplete((successResult, ex) -> {
+            if (ex != null) {
+                // This code block will be executed in case of failure
+                var exception = assertThrows(Exception.class, actualCompletableFuture::get);
+                assertEquals("Exception Calling Kafka", exception.getMessage());
+            } else {
+                SendResult<String, ItemEvent> sendResult1;
+                try {
+                    sendResult1 = actualCompletableFuture.get();
+                } catch (InterruptedException | ExecutionException e) {
+                    throw new RuntimeException(e);
+                }
+                assert sendResult1.getRecordMetadata().partition() == 1;
+            }
+        });
+    }
+}

@@ -34,7 +34,7 @@ public class TestUtil {
         return new ItemEvent(null,  itemRecord(), ItemEventType.UPDATE);
     }
 
-    public static ItemEvent itemEventRecordWithInvalidBook(){
+    public static ItemEvent itemEventRecordWithInvalidItem(){
         return new ItemEvent(null, itemRecordWithInvalidValues(), ItemEventType.CREATE);
     }
 
@@ -45,7 +45,5 @@ public class TestUtil {
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
-
     }
-    
 }

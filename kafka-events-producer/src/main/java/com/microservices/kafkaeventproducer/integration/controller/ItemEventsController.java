@@ -23,10 +23,13 @@ public class ItemEventsController {
     private final ItemEventsService itemEventsService;
 
     @PostMapping("/item-event")
-    public ResponseEntity<ItemEvent> newItemEvent(@RequestBody @Valid ItemEvent itemEvent) {
-        log.info("itemEvent: {}", itemEvent);
+    public ResponseEntity<?> newItemEvent(@RequestBody @Valid ItemEvent itemEvent) {
+        log.info("itemEvent to create: {}", itemEvent);
 
-        itemEvent.setItemEventType(ItemEventType.CREATE);
+        if (ItemEventType.CREATE != itemEvent.getItemEventType()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Only CREATE event type is supported");
+        }
+
         ItemEvent emittedItem = itemEventsService.createNewItem(itemEvent);
 
         return new ResponseEntity<>(emittedItem, HttpStatus.CREATED);
@@ -35,14 +38,25 @@ public class ItemEventsController {
     @PutMapping("/item-event")
     public ResponseEntity<?> updateItemEvent(@RequestBody @Valid ItemEvent itemEvent) {
 
-        if (itemEvent.getEventId() == null) {
-            return new ResponseEntity<>("Missing event Id", HttpStatus.BAD_REQUEST);
-        }
+        log.info("itemEvent to update: {}", itemEvent);
 
-        itemEvent.setItemEventType(ItemEventType.UPDATE);
+        ResponseEntity<String> BAD_REQUEST = validateItemEvent(itemEvent);
+        if (BAD_REQUEST != null) return BAD_REQUEST;
+
         itemEventsService.createNewItem(itemEvent);
 
         return new ResponseEntity<>(itemEvent, HttpStatus.OK);
+    }
+
+    private static ResponseEntity<String> validateItemEvent(ItemEvent itemEvent) {
+        if (itemEvent.getEventId() == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Please pass the itemEventId");
+        }
+
+        if (!ItemEventType.UPDATE.equals(itemEvent.getItemEventType()))  {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Only UPDATE event type is supported");
+        }
+        return null;
     }
 
 }

@@ -24,7 +24,7 @@ public class ItemEventsProducer {
 
     private final KafkaTemplate<String, ItemEvent> kafkaTemplate;
 
-    public void sendItemEvent(ItemEvent itemEvent) {
+    public CompletableFuture<SendResult<String, ItemEvent>> sendItemEvent(ItemEvent itemEvent) {
         ProducerRecord<String, ItemEvent> producerRecord = buildProducerRecord(itemEvent);
 
         // with kafkaTemplate.send(), there are actually 2 rest calls happens behind the scene.
@@ -33,7 +33,7 @@ public class ItemEventsProducer {
 
         CompletableFuture<SendResult<String, ItemEvent>> sendResultCompletableFuture = kafkaTemplate.send(producerRecord);
 
-        sendResultCompletableFuture.whenComplete((successResult, exception) -> {
+        return sendResultCompletableFuture.whenComplete((successResult, exception) -> {
             if (exception == null) {
                 handleSuccess(successResult, itemEvent);
             } else {

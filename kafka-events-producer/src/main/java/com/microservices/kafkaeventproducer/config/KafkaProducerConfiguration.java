@@ -39,6 +39,8 @@ public class KafkaProducerConfiguration {
     public ProducerFactory<String, ItemEvent> itemEventProducerFactory() {
         Map<String, Object> producerConfigProps = new HashMap<>();
         producerConfigProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+        producerConfigProps.put(ProducerConfig.ACKS_CONFIG, "all"); // acks: all is same as acks = -1
+        producerConfigProps.put(ProducerConfig.RETRIES_CONFIG, 10);
         producerConfigProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         producerConfigProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
 

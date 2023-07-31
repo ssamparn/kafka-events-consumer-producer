@@ -49,7 +49,7 @@
 		</dependency>
 		<dependency>
 			<groupId>com.kafka.events</groupId>
-			<artifactId>kafka-event-common</artifactId>
+			<artifactId>kafka-events-common</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>

@@ -24,6 +24,11 @@ public class ItemEventsService {
         ItemEventEntity inputItemEvent = mapToItemEventEntity(consumerRecord.value());
         log.info("itemEventEntity: {}", inputItemEvent);
 
+        // code block to simulate not to retry on exceptions
+        if (inputItemEvent.getEventId() != null && inputItemEvent.getEventId().toString().equals("b9c21087-3391-46d4-91b7-5b493c057089")) {
+            throw new RecoverableDataAccessException("Temporary Network Issue");
+        }
+
         switch (inputItemEvent.getItemEventType()) {
             case CREATE -> {
                 inputItemEvent.getItem().setItemEvent(inputItemEvent);
@@ -73,7 +78,7 @@ public class ItemEventsService {
 
     private Optional<ItemEventEntity> getItemEventEntity(ItemEventEntity itemEvent) {
         if (itemEvent.getEventId() == null) {
-            throw new RecoverableDataAccessException("Missing item event id");
+            throw new IllegalArgumentException("Missing item event id");
         }
 
         Optional<ItemEventEntity> itemEventEntityOptional = itemEventsRepository.findById(itemEvent.getEventId());

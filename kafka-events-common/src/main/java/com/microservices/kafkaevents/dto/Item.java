@@ -2,18 +2,23 @@ package com.microservices.kafkaevents.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.UUID;
 
-public record Item(
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class Item {
 
-        @NotNull
-        UUID itemId,
+    @NotNull
+    private UUID itemId;
 
-        @NotBlank
-        String itemName,
+    @NotBlank
+    private String itemName;
 
-        @NotBlank
-        String itemOriginator
-) {
+    @NotBlank
+    private String itemOriginator;
 }

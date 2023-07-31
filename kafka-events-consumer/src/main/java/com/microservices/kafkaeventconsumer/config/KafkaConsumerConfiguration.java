@@ -11,13 +11,18 @@ import org.springframework.boot.autoconfigure.kafka.ConcurrentKafkaListenerConta
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import org.springframework.dao.RecoverableDataAccessException;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.listener.ContainerProperties;
+import org.springframework.kafka.listener.DefaultErrorHandler;
+import org.springframework.kafka.support.ExponentialBackOffWithMaxRetries;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
+import org.springframework.util.backoff.FixedBackOff;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -51,7 +56,36 @@ public class KafkaConsumerConfiguration {
 //        kafkaContainerFactory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL); // here we are overriding the acknowledgement mode of kafka.
 //        Default acknowledgement mode of kafka is BATCH
         kafkaContainerFactory.setConcurrency(3);
+        kafkaContainerFactory.setCommonErrorHandler(errorHandler());
         return kafkaContainerFactory;
+    }
+
+    public DefaultErrorHandler errorHandler() {
+        // exponentialBackOff settings
+        ExponentialBackOffWithMaxRetries exponentialBackOff = new ExponentialBackOffWithMaxRetries(2);
+        exponentialBackOff.setInitialInterval(1_000L);
+        exponentialBackOff.setMultiplier(2.0);
+        exponentialBackOff.setMaxInterval(2_000L);
+
+        // fixedBackOff settings
+        FixedBackOff fixedBackOff = new FixedBackOff(1000L, 2L); // Retry twice in an interval of 1 second
+
+        // Error Handler with the Fixed BackOff
+        DefaultErrorHandler defaultErrorHandler = new DefaultErrorHandler(
+                fixedBackOff //expBackOff
+        );
+
+        // provide list of exceptions, from which the kafka consumer is not going to recover from.
+        List<Class<IllegalArgumentException>> exceptionListToIgnore = List.of(IllegalArgumentException.class);
+        // Error Handler for not to retry for certain exceptions
+        exceptionListToIgnore.forEach(defaultErrorHandler::addNotRetryableExceptions);
+
+        // setting retry listeners.
+        defaultErrorHandler.setRetryListeners(
+                (record, ex, deliveryAttempt) -> log.info("Failed record in Retry Listener exception : {} , deliveryAttempt : {} ", ex.getMessage(), deliveryAttempt)
+        );
+
+        return defaultErrorHandler;
     }
 
 //    @Bean

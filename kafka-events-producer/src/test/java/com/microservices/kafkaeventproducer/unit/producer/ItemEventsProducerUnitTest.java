@@ -1,6 +1,5 @@
 package com.microservices.kafkaeventproducer.unit.producer;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.microservices.kafkaeventproducer.producer.ItemEventsProducer;
 import com.microservices.kafkaeventproducer.util.TestUtil;
 import com.microservices.kafkaevents.dto.ItemEvent;
@@ -39,7 +38,7 @@ class ItemEventsProducerUnitTest {
     private ItemEventsProducer itemProducer;
 
     @BeforeEach
-    void setUp() throws JsonProcessingException {
+    void setUp() {
         ReflectionTestUtils.setField(itemProducer, "topic", "item-event-topic");
         itemEvent = TestUtil.newItemEventRecordWithItemEventId();
 

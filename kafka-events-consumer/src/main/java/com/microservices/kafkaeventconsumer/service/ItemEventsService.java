@@ -25,23 +25,26 @@ public class ItemEventsService {
         log.info("itemEventEntity: {}", inputItemEvent);
 
         switch (inputItemEvent.getItemEventType()) {
-            case CREATE:
+            case CREATE -> {
                 inputItemEvent.getItem().setItemEvent(inputItemEvent);
                 ItemEventEntity savedItemEvent = itemEventsRepository.save(inputItemEvent);
                 log.info("savedItemEvent : {}", savedItemEvent);
-                break;
-            case UPDATE:
+            }
+
+            case UPDATE -> {
                 Optional<ItemEventEntity> itemEventEntityOptional = getItemEventEntity(inputItemEvent);
                 ItemEventEntity toBeUpdatedItemEntity = updatedItemEvent(inputItemEvent, itemEventEntityOptional);
                 ItemEventEntity updatedItemEvent = itemEventsRepository.save(toBeUpdatedItemEntity);
                 log.info("updatedItemEvent : {}", updatedItemEvent);
-                break;
-            default:
-                log.info("Invalid Item Event Type");
+            }
+
+            default -> log.info("Invalid Item Event Type");
         }
     }
 
     private ItemEventEntity mapToItemEventEntity(ItemEvent event) {
+        log.info("itemEvent Received: {}", event);
+
         ItemEventEntity entity = new ItemEventEntity();
         entity.setEventId(event.getEventId());
         entity.setItem(ItemEntity.builder()

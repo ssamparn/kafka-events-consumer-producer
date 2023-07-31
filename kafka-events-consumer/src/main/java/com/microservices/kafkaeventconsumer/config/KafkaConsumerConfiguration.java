@@ -4,13 +4,17 @@ import com.microservices.kafkaevents.dto.ItemEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.kafka.ConcurrentKafkaListenerContainerFactoryConfigurer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
+import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 
 import java.util.HashMap;
@@ -44,9 +48,23 @@ public class KafkaConsumerConfiguration {
     public ConcurrentKafkaListenerContainerFactory<String, ItemEvent> kafkaListenerContainerFactory() {
         ConcurrentKafkaListenerContainerFactory<String, ItemEvent> kafkaContainerFactory = new ConcurrentKafkaListenerContainerFactory<>();
         kafkaContainerFactory.setConsumerFactory(consumerFactory());
-
+//        kafkaContainerFactory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL); // here we are overriding the acknowledgement mode of kafka.
+//        Default acknowledgement mode of kafka is BATCH
+        kafkaContainerFactory.setConcurrency(3);
         return kafkaContainerFactory;
     }
+
+//    @Bean
+//    @ConditionalOnMissingBean(name = "kafkaListenerContainerFactory")
+//    public ConcurrentKafkaListenerContainerFactory<?, ?> kafkaListenerContainerFactory(ConcurrentKafkaListenerContainerFactoryConfigurer configurer,
+//                                                                                       ConsumerFactory<Object, Object> kafkaConsumerFactory) {
+//        ConcurrentKafkaListenerContainerFactory<Object, Object> kafkaContainerFactory = new ConcurrentKafkaListenerContainerFactory<>();
+//        configurer.configure(kafkaContainerFactory, kafkaConsumerFactory);
+//        kafkaContainerFactory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL); // Here we are manually managing the offset. Just for demo purpose
+//        kafkaContainerFactory.setConcurrency(3);
+//
+//        return kafkaContainerFactory;
+//    }
 
 //    @Bean
 //    public RetryTemplate createRetryTemplate() {

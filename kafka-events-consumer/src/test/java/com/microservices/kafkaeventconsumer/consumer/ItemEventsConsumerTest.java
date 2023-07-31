@@ -6,7 +6,7 @@
 //import com.microservices.kafkaeventconsumer.entity.ItemEventEntity;
 //import com.microservices.kafkaeventconsumer.entity.ItemEventTypeEntity;
 //import com.microservices.kafkaeventconsumer.repository.ItemEventsRepository;
-//import com.microservices.kafkaeventconsumer.service.ItemEventsConsumer;
+//import com.microservices.kafkaeventconsumer.consumer.ItemEventsConsumer;
 //import com.microservices.kafkaeventconsumer.service.ItemEventsService;
 //import lombok.extern.slf4j.Slf4j;
 //import org.apache.kafka.clients.consumer.ConsumerRecord;

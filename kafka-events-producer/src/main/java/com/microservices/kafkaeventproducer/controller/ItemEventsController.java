@@ -1,4 +1,4 @@
-package com.microservices.kafkaeventproducer.integration.controller;
+package com.microservices.kafkaeventproducer.controller;
 
 import com.microservices.kafkaeventproducer.service.ItemEventsService;
 import com.microservices.kafkaevents.dto.ItemEvent;
@@ -43,7 +43,7 @@ public class ItemEventsController {
         ResponseEntity<String> BAD_REQUEST = validateItemEvent(itemEvent);
         if (BAD_REQUEST != null) return BAD_REQUEST;
 
-        itemEventsService.createNewItem(itemEvent);
+        itemEventsService.updateItem(itemEvent);
 
         return new ResponseEntity<>(itemEvent, HttpStatus.OK);
     }

@@ -1,7 +1,7 @@
 package com.microservices.kafkaeventproducer.unit.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.microservices.kafkaeventproducer.integration.controller.ItemEventsController;
+import com.microservices.kafkaeventproducer.controller.ItemEventsController;
 import com.microservices.kafkaeventproducer.service.ItemEventsService;
 import com.microservices.kafkaeventproducer.util.TestUtil;
 import com.microservices.kafkaevents.dto.ItemEvent;

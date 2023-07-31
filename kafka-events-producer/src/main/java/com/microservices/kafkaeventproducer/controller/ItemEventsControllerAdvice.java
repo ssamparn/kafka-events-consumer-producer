@@ -1,4 +1,4 @@
-package com.microservices.kafkaeventproducer.integration.controller.advice;
+package com.microservices.kafkaeventproducer.controller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;

@@ -19,4 +19,10 @@ public class ItemEventsService {
 
         return itemEvent;
     }
+
+    public ItemEvent updateItem(ItemEvent itemEvent) {
+        this.eventsProducer.sendItemEvent(itemEvent);
+
+        return itemEvent;
+    }
 }

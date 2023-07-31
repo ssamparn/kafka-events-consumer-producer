@@ -3,6 +3,10 @@ server:
 spring:
   profiles:
     active: local
+topics:
+  default: 'item-event-topic'
+  retry: 'item-event-topic.retry'
+  dlt: 'item-event-topic.dlt'
 ---
 spring:
   config:
@@ -14,11 +18,11 @@ spring:
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       group-id: item-events-listener-group
-    # producer configuration only to be used in integration tests
-#    producer:
-#      bootstrap-servers: localhost:9092,localhost:9093,localhost:9094
-#      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-#      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    # producer configuration only to be used for sending messages to retry topic, dead letter topic and for integration tests as well.
+    producer:
+      bootstrap-servers: localhost:9092,localhost:9093,localhost:9094
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
     template:
       default-topic: item-event-topic
   datasource:

@@ -3,11 +3,10 @@ package com.microservices.kafkaeventconsumer.config;
 import com.microservices.kafkaevents.dto.ItemEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.StringDeserializer;
-import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.kafka.ConcurrentKafkaListenerContainerFactoryConfigurer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -15,7 +14,8 @@ import org.springframework.dao.RecoverableDataAccessException;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
-import org.springframework.kafka.listener.ContainerProperties;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.listener.DeadLetterPublishingRecoverer;
 import org.springframework.kafka.listener.DefaultErrorHandler;
 import org.springframework.kafka.support.ExponentialBackOffWithMaxRetries;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
@@ -35,6 +35,15 @@ public class KafkaConsumerConfiguration {
 
     @Value("${spring.kafka.consumer.group-id: item-events-listener-group}")
     private String groupId;
+
+    @Value("${topics.retry:item-event-topic.retry}")
+    private String retryTopic;
+
+    @Value("${topics.dlt:item-event-topic.dlt}")
+    private String deadLetterTopic;
+
+    @Autowired
+    private KafkaTemplate kafkaTemplate;
 
     @Bean
     public ConsumerFactory<String, ItemEvent> consumerFactory() {
@@ -61,18 +70,21 @@ public class KafkaConsumerConfiguration {
     }
 
     public DefaultErrorHandler errorHandler() {
-        // exponentialBackOff settings
+        // Exponential BackOff settings
         ExponentialBackOffWithMaxRetries exponentialBackOff = new ExponentialBackOffWithMaxRetries(2);
         exponentialBackOff.setInitialInterval(1_000L);
         exponentialBackOff.setMultiplier(2.0);
         exponentialBackOff.setMaxInterval(2_000L);
 
-        // fixedBackOff settings
+        // Fixed BackOff settings
         FixedBackOff fixedBackOff = new FixedBackOff(1000L, 2L); // Retry twice in an interval of 1 second
 
         // Error Handler with the Fixed BackOff
+        // Provide either fixed backoff config or exponential backoff config
         DefaultErrorHandler defaultErrorHandler = new DefaultErrorHandler(
-                fixedBackOff //expBackOff
+                publishingRecoverer(),
+                fixedBackOff
+//                exponentialBackOff
         );
 
         // provide list of exceptions, from which the kafka consumer is not going to recover from.
@@ -86,6 +98,18 @@ public class KafkaConsumerConfiguration {
         );
 
         return defaultErrorHandler;
+    }
+
+    public DeadLetterPublishingRecoverer publishingRecoverer() {
+        DeadLetterPublishingRecoverer recoverer = new DeadLetterPublishingRecoverer(kafkaTemplate, (r, e) -> {
+            log.error("Exception in publishingRecoverer : {} ", e.getMessage(), e);
+            if (e.getCause() instanceof RecoverableDataAccessException) { // thrown if the event id is "b9c21087-3391-46d4-91b7-5b493c057089"
+                return new TopicPartition(retryTopic, r.partition());
+            } else {
+                return new TopicPartition(deadLetterTopic, r.partition());
+            }
+        });
+        return recoverer;
     }
 
 //    @Bean

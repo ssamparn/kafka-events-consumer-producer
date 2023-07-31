@@ -9,20 +9,21 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
 @Slf4j
-@Component // initialize the bean only if you want to manage the offset automatically otherwise Load itemEventsConsumerManualOffset bean.
+@Component
 @RequiredArgsConstructor
-public class ItemEventsConsumer {
+public class ItemEventsRetryConsumer {
 
     private final ItemEventsService itemEventsService;
 
     @KafkaListener(
-            topics = "${topics.default}",
-            groupId = "${spring.kafka.consumer.group-id}",
-            containerFactory = "kafkaListenerContainerFactory"
+            topics = "${topics.retry}",
+            autoStartup = "${retryListener.startup:true}",
+            groupId = "retry-listener-group"
     )
     public void onMessage(ConsumerRecord<String, ItemEvent> consumerRecord) {
-        log.info("consumer record in direct listener: {}", consumerRecord);
-
+        log.info("consumer record in retry listener: {} ", consumerRecord );
+        consumerRecord.headers()
+                .forEach(header -> log.info("retried consumer record key: {}, value: {}", header.key(), new String(header.value())));
         itemEventsService.processItemEvent(consumerRecord);
     }
 }

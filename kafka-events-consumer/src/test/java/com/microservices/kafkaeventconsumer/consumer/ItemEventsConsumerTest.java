@@ -6,24 +6,31 @@ import com.microservices.kafkaeventconsumer.service.ItemEventsService;
 import com.microservices.kafkaevents.dto.ItemEvent;
 import com.microservices.kafkaevents.util.ItemEventsUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.common.serialization.StringDeserializer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.kafka.config.KafkaListenerEndpointRegistry;
+import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.kafka.test.EmbeddedKafkaBroker;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.kafka.test.utils.ContainerTestUtils;
+import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.test.context.TestPropertySource;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -33,9 +40,10 @@ import java.util.concurrent.TimeUnit;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.Mockito.verify;
 
 @Slf4j
-@EmbeddedKafka(topics = {"item-event-topic"}, partitions = 3)
+@EmbeddedKafka(topics = {"item-event-topic", "item-event-topic.retry", "item-event-topic.dlt"}, partitions = 3)
 @TestPropertySource(properties = {
         "spring.kafka.producer.bootstrap-servers=${spring.embedded.kafka.brokers}",
         "spring.kafka.consumer.bootstrap-servers=${spring.embedded.kafka.brokers}",
@@ -46,6 +54,14 @@ import static org.mockito.ArgumentMatchers.isA;
 })
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class ItemEventsConsumerTest {
+
+    private Consumer<String, String> consumer;
+
+    @Value("${topics.retry}")
+    private String retryTopic;
+
+    @Value("${topics.dlt}")
+    private String deadLetterTopic;
 
     @SpyBean
     private ItemEventsConsumer itemEventsConsumerSpy;
@@ -96,8 +112,8 @@ public class ItemEventsConsumerTest {
             } else {
                 // This code block will be executed in case of success
                 // Assert
-                Mockito.verify(itemEventsConsumerSpy, Mockito.times(1)).onMessage(isA(ConsumerRecord.class));
-                Mockito.verify(itemEventsServiceSpy, Mockito.times(1)).processItemEvent(isA(ConsumerRecord.class));
+                verify(itemEventsConsumerSpy, Mockito.times(1)).onMessage(isA(ConsumerRecord.class));
+                verify(itemEventsServiceSpy, Mockito.times(1)).processItemEvent(isA(ConsumerRecord.class));
 
                 List<ItemEventEntity> itemEventEntities = itemEventsRepository.findAll();
                 Assertions.assertEquals(1, itemEventEntities.size());
@@ -155,8 +171,8 @@ public class ItemEventsConsumerTest {
             } else {
                 // This code block will be executed in case of success
                 // Assert
-                Mockito.verify(itemEventsConsumerSpy, Mockito.times(1)).onMessage(isA(ConsumerRecord.class));
-                Mockito.verify(itemEventsServiceSpy, Mockito.times(1)).processItemEvent(isA(ConsumerRecord.class));
+                verify(itemEventsConsumerSpy, Mockito.times(1)).onMessage(isA(ConsumerRecord.class));
+                verify(itemEventsServiceSpy, Mockito.times(1)).processItemEvent(isA(ConsumerRecord.class));
 
                 Optional<ItemEventEntity> entity = itemEventsRepository.findById(UUID.fromString(nonExistantEventId));
                 Assertions.assertFalse(entity.isPresent());
@@ -180,8 +196,8 @@ public class ItemEventsConsumerTest {
                 assertEquals("Exception Calling Kafka", exception.getMessage());
             } else {
                 // Assert
-                Mockito.verify(itemEventsConsumerSpy, Mockito.times(1)).onMessage(isA(ConsumerRecord.class));
-                Mockito.verify(itemEventsServiceSpy, Mockito.times(1)).processItemEvent(isA(ConsumerRecord.class));
+                verify(itemEventsConsumerSpy, Mockito.times(1)).onMessage(isA(ConsumerRecord.class));
+                verify(itemEventsServiceSpy, Mockito.times(1)).processItemEvent(isA(ConsumerRecord.class));
             }
         });
     }
@@ -193,7 +209,7 @@ public class ItemEventsConsumerTest {
 
         // Act
         CountDownLatch latch = new CountDownLatch(1);
-        latch.await(5, TimeUnit.SECONDS);
+        latch.await(10, TimeUnit.SECONDS);
 
         // Assert
         actualCompletableFuture.whenComplete((successResult, ex) -> {
@@ -201,8 +217,20 @@ public class ItemEventsConsumerTest {
                 var exception = assertThrows(Exception.class, actualCompletableFuture::get);
                 assertEquals("Exception Calling Kafka", exception.getMessage());
             } else {
-                Mockito.verify(itemEventsConsumerSpy, Mockito.times(3)).onMessage(isA(ConsumerRecord.class));
-                Mockito.verify(itemEventsServiceSpy, Mockito.times(3)).processItemEvent(isA(ConsumerRecord.class));
+                verify(itemEventsConsumerSpy, Mockito.times(3)).onMessage(isA(ConsumerRecord.class));
+                verify(itemEventsServiceSpy, Mockito.times(3)).processItemEvent(isA(ConsumerRecord.class));
+
+                Map<String, Object> configs = new HashMap<>(KafkaTestUtils.consumerProps("group1", "true", embeddedKafkaBroker));
+                consumer = new DefaultKafkaConsumerFactory<>(configs, new StringDeserializer(), new StringDeserializer()).createConsumer();
+                embeddedKafkaBroker.consumeFromAnEmbeddedTopic(consumer, retryTopic);
+
+                ConsumerRecord<String, String> consumerRecord = KafkaTestUtils.getSingleRecord(consumer, retryTopic);
+
+                log.info("consumer record in retry topic: {}", consumerRecord.value());
+                consumerRecord.headers()
+                    .forEach(header -> {
+                        System.out.println("Header Key : " + header.key() + ", Header Value : " + new String(header.value()));
+                    });
             }
         });
     }

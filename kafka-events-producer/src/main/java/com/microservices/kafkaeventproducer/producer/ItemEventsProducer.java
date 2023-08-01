@@ -28,7 +28,7 @@ public class ItemEventsProducer {
         ProducerRecord<String, ItemEvent> producerRecord = buildProducerRecord(itemEvent);
 
         // with kafkaTemplate.send(), there are actually 2 rest calls happens behind the scene.
-        // 1. Blocking Call: To get the metadata of the kafka cluster.
+        // 1. Blocking Call: To get the metadata of the kafka cluster => if the cluster is down, then max.block.ms is the config responsible for the timeout settings.
         // 2. Async Call: To Send Message to kafka topic if the first call goes fine.
 
         CompletableFuture<SendResult<String, ItemEvent>> sendResultCompletableFuture = kafkaTemplate.send(producerRecord);

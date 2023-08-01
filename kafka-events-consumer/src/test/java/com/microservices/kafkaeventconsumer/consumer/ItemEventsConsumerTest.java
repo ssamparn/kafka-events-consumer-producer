@@ -203,7 +203,7 @@ public class ItemEventsConsumerTest {
     }
 
     @Test
-    void doNotRetryOnExceptionsTest() throws InterruptedException {
+    void publishItemEventToRetryTopicTest() throws InterruptedException {
         // Arrange
         CompletableFuture<SendResult<String, ItemEvent>> actualCompletableFuture = kafkaTemplate.sendDefault(ItemEventsUtil.itemEventRecordUpdateWithProvidedEventId(UUID.fromString("b9c21087-3391-46d4-91b7-5b493c057089")));
 
@@ -231,6 +231,39 @@ public class ItemEventsConsumerTest {
                     .forEach(header -> {
                         System.out.println("Header Key : " + header.key() + ", Header Value : " + new String(header.value()));
                     });
+            }
+        });
+    }
+
+    @Test
+    void publishItemEventToDeadLetterTopicTest() throws InterruptedException {
+        // Arrange
+        CompletableFuture<SendResult<String, ItemEvent>> actualCompletableFuture = kafkaTemplate.sendDefault(ItemEventsUtil.itemEventRecordUpdateWithNullItemEventId());
+
+        // Act
+        CountDownLatch latch = new CountDownLatch(1);
+        latch.await(10, TimeUnit.SECONDS);
+
+        // Assert
+        actualCompletableFuture.whenComplete((successResult, ex) -> {
+            if (ex != null) {
+                var exception = assertThrows(Exception.class, actualCompletableFuture::get);
+                assertEquals("Exception Calling Kafka", exception.getMessage());
+            } else {
+                verify(itemEventsConsumerSpy, Mockito.times(3)).onMessage(isA(ConsumerRecord.class));
+                verify(itemEventsServiceSpy, Mockito.times(3)).processItemEvent(isA(ConsumerRecord.class));
+
+                Map<String, Object> configs = new HashMap<>(KafkaTestUtils.consumerProps("group2", "true", embeddedKafkaBroker));
+                consumer = new DefaultKafkaConsumerFactory<>(configs, new StringDeserializer(), new StringDeserializer()).createConsumer();
+                embeddedKafkaBroker.consumeFromAnEmbeddedTopic(consumer, deadLetterTopic);
+
+                ConsumerRecord<String, String> consumerRecord = KafkaTestUtils.getSingleRecord(consumer, deadLetterTopic);
+
+                log.info("consumer record in dead letter topic: {}", consumerRecord.value());
+                consumerRecord.headers()
+                        .forEach(header -> {
+                            System.out.println("Header Key : " + header.key() + ", Header Value : " + new String(header.value()));
+                        });
             }
         });
     }

@@ -39,10 +39,27 @@ $ kafka-console-producer --bootstrap-server kafka-1:19092 \
 - Consume Messages from the topic.
 
 ```bash
-$ kafka-console-consumer --bootstrap-server kafka-1:19092 \
+$ kafka-console-consumer --bootstrap-server kafka-1:9092 \
   --topic test-topic \
   --from-beginning
 ```
+
+- Consume Messages from dead letter topic.
+
+```bash
+$ kafka-console-consumer --bootstrap-server kafka-1:29092 \
+--topic item-event-topic.dlt \
+--from-beginning
+```
+
+- Consume Messages from retry topic.
+
+```bash
+$ kafka-console-consumer --bootstrap-server kafka-1:29092 \
+--topic item-event-topic.retry \
+--from-beginning
+```
+
 #### Log files in Multi Kafka Cluster
 
 - Log files will be created for each partition in each of the broker instance of the Kafka cluster.
@@ -86,7 +103,7 @@ $ kafka-configs --bootstrap-server localhost:9092 --entity-type topics --entity-
 ### List the topics in a cluster
 
 ```bash
-$ kafka-topics --bootstrap-server kafka-1:19092 --list
+$ kafka-topics --bootstrap-server kafka-1:29092 --list
 ```
 
 ### Describe topic
@@ -94,7 +111,7 @@ $ kafka-topics --bootstrap-server kafka-1:19092 --list
 - Command to describe all the Kafka topics.
 
 ```bash
-$ kafka-topics --bootstrap-server kafka-1:19092 --describe
+$ kafka-topics --bootstrap-server kafka-1:29092 --describe
 ```
 
 - Command to describe a specific Kafka topic.

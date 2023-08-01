@@ -1,8 +1,10 @@
 package com.microservices.kafkaeventconsumer.config;
 
+import com.microservices.kafkaeventconsumer.service.FailureService;
 import com.microservices.kafkaevents.dto.ItemEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +17,7 @@ import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.listener.ConsumerRecordRecoverer;
 import org.springframework.kafka.listener.DeadLetterPublishingRecoverer;
 import org.springframework.kafka.listener.DefaultErrorHandler;
 import org.springframework.kafka.support.ExponentialBackOffWithMaxRetries;
@@ -30,6 +33,10 @@ import java.util.Map;
 @Profile("local")
 public class KafkaConsumerConfiguration {
 
+    public static final String RETRY = "RETRY";
+    public static final String SUCCESS = "SUCCESS";
+    public static final String DEAD = "DEAD";
+
     @Value("${spring.kafka.consumer.bootstrap-servers: localhost:9092}")
     private String bootstrapServers;
 
@@ -44,6 +51,9 @@ public class KafkaConsumerConfiguration {
 
     @Autowired
     private KafkaTemplate kafkaTemplate;
+
+    @Autowired
+    private FailureService failureService;
 
     @Bean
     public ConsumerFactory<String, ItemEvent> consumerFactory() {
@@ -82,7 +92,8 @@ public class KafkaConsumerConfiguration {
         // Error Handler with the Fixed BackOff
         // Provide either fixed backoff config or exponential backoff config
         DefaultErrorHandler defaultErrorHandler = new DefaultErrorHandler(
-                publishingRecoverer(),
+//                publishingRecoverer(), // to be used when pushing events to retry or dead letter topic
+                consumerRecordRecoverer,
                 fixedBackOff
 //                exponentialBackOff
         );
@@ -111,6 +122,19 @@ public class KafkaConsumerConfiguration {
         });
         return recoverer;
     }
+
+    public ConsumerRecordRecoverer consumerRecordRecoverer = (record, exception) -> {
+        log.error("failed Record : {} failing with exception : {}", record, exception.getMessage());
+        if (exception.getCause() instanceof RecoverableDataAccessException) {
+            // Add recovery logic here. e.g: persist the failed record in database
+            log.info("Inside the recoverable logic");
+            failureService.saveFailureRecord((ConsumerRecord<String, ItemEvent>) record, exception, RETRY);
+
+        } else {
+            log.info("Inside the non recoverable logic and skipping the record : {}", record);
+            failureService.saveFailureRecord((ConsumerRecord<String, ItemEvent>) record, exception, DEAD);
+        }
+    };
 
 //    @Bean
 //    @ConditionalOnMissingBean(name = "kafkaListenerContainerFactory")

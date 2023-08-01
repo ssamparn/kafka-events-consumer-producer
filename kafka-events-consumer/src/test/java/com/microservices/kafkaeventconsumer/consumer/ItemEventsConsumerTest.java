@@ -1,6 +1,7 @@
 package com.microservices.kafkaeventconsumer.consumer;
 
 import com.microservices.kafkaeventconsumer.entity.ItemEventEntity;
+import com.microservices.kafkaeventconsumer.repository.FailureRecordRepository;
 import com.microservices.kafkaeventconsumer.repository.ItemEventsRepository;
 import com.microservices.kafkaeventconsumer.service.ItemEventsService;
 import com.microservices.kafkaevents.dto.ItemEvent;
@@ -84,6 +85,9 @@ public class ItemEventsConsumerTest {
     @Autowired
     private ItemEventsRepository itemEventsRepository;
 
+    @Autowired
+    private FailureRecordRepository failureRecordRepository;
+
     @BeforeEach
     void setUp() {
         kafkaListenerEndpointRegistry.getListenerContainers()
@@ -94,6 +98,7 @@ public class ItemEventsConsumerTest {
     @AfterEach
     void tearDown() {
         itemEventsRepository.deleteAll();
+        failureRecordRepository.deleteAll();
     }
 
     @Test
@@ -267,4 +272,23 @@ public class ItemEventsConsumerTest {
             }
         });
     }
+
+    @Test
+    void persistFailedItemEventInDatabaseTest() throws InterruptedException {
+        // Arrange
+        kafkaTemplate.sendDefault(ItemEventsUtil.itemEventRecordUpdateWithNullItemEventId());
+
+        // Act
+        CountDownLatch latch = new CountDownLatch(1);
+        latch.await(10, TimeUnit.SECONDS);
+
+        // Assert
+        verify(itemEventsConsumerSpy, Mockito.times(1)).onMessage(isA(ConsumerRecord.class));
+        verify(itemEventsServiceSpy, Mockito.times(1)).processItemEvent(isA(ConsumerRecord.class));
+
+        long failureCount = failureRecordRepository.count();
+        assertEquals(1, failureCount);
+        failureRecordRepository.findAll().forEach(failureRecord -> log.info("failure record persisted: {}", failureRecord));
+    }
+
 }

@@ -9,6 +9,4 @@ import java.util.List;
 @Repository
 public interface FailureRecordRepository extends JpaRepository<FailureRecordEntity, Integer> {
 
-    List<FailureRecordEntity> findAllByStatus(String status);
-
 }

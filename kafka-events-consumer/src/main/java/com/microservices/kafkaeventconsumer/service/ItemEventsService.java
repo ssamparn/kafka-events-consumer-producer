@@ -3,6 +3,7 @@ package com.microservices.kafkaeventconsumer.service;
 import com.microservices.kafkaeventconsumer.entity.ItemEntity;
 import com.microservices.kafkaeventconsumer.entity.ItemEventEntity;
 import com.microservices.kafkaeventconsumer.entity.ItemEventTypeEntity;
+import com.microservices.kafkaeventconsumer.mapper.ItemEventsMapper;
 import com.microservices.kafkaeventconsumer.repository.ItemEventsRepository;
 import com.microservices.kafkaevents.dto.ItemEvent;
 import lombok.RequiredArgsConstructor;
@@ -18,10 +19,11 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class ItemEventsService {
 
+    private final ItemEventsMapper itemEventsMapper;
     private final ItemEventsRepository itemEventsRepository;
 
     public void processItemEvent(ConsumerRecord<String, ItemEvent> consumerRecord) {
-        ItemEventEntity inputItemEvent = mapToItemEventEntity(consumerRecord.value());
+        ItemEventEntity inputItemEvent = itemEventsMapper.mapToItemEventEntity(consumerRecord.value());
         log.info("itemEventEntity: {}", inputItemEvent);
 
         // code block to simulate not to retry on exceptions
@@ -45,21 +47,6 @@ public class ItemEventsService {
 
             default -> log.info("Invalid Item Event Type");
         }
-    }
-
-    private ItemEventEntity mapToItemEventEntity(ItemEvent event) {
-        log.info("itemEvent Received: {}", event);
-
-        ItemEventEntity entity = new ItemEventEntity();
-        entity.setEventId(event.getEventId());
-        entity.setItem(ItemEntity.builder()
-                        .itemId(event.getItem().getItemId())
-                        .itemName(event.getItem().getItemName())
-                        .itemOriginator(event.getItem().getItemOriginator())
-                .build());
-        entity.setItemEventType(ItemEventTypeEntity.valueOf(event.getItemEventType().toString()));
-
-        return entity;
     }
 
     private ItemEventEntity updatedItemEvent(ItemEventEntity inputItemEvent, Optional<ItemEventEntity> itemEventEntityOptional) {

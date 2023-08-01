@@ -13,6 +13,7 @@ import org.apache.kafka.common.serialization.StringDeserializer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -208,6 +209,7 @@ public class ItemEventsConsumerTest {
     }
 
     @Test
+    @Disabled // To be enabled when events are to be published to retry topic. In this branch, the failed messages are to be pushed to database.
     void publishItemEventToRetryTopicTest() throws InterruptedException {
         // Arrange
         CompletableFuture<SendResult<String, ItemEvent>> actualCompletableFuture = kafkaTemplate.sendDefault(ItemEventsUtil.itemEventRecordUpdateWithProvidedEventId(UUID.fromString("b9c21087-3391-46d4-91b7-5b493c057089")));

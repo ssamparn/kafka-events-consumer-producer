@@ -1,0 +1,28 @@
+---
+spring:
+  config:
+    activate:
+      on-profile: ssl
+  kafka:
+    topic: item-event-topic
+    template:
+      default-topic: item-event-topic
+    producer:
+      bootstrap-servers: localhost:9092
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      ssl:
+        trust-store-location: file:/Users/sashankasamantray/my_projects/backend/event-streams/kafka-cluster-ssl/kafka-cluster-ssl/secrets/kafka.producer.truststore.jks
+        trust-store-password: confluent
+        key-store-location: file:/Users/sashankasamantray/my_projects/backend/event-streams/kafka-cluster-ssl/kafka-cluster-ssl/secrets/kafka.producer.keystore.jks
+        key-store-password: confluent
+      properties:
+        acks: all
+        retries: 10
+        retry.backoff.ms: 1000
+        security:
+          protocol: SSL
+        ssl.endpoint.identification.algorithm:
+    admin:
+      properties:
+        bootstrap.servers: localhost:9091

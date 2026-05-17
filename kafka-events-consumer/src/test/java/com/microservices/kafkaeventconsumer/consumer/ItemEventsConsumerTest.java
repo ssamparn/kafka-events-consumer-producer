@@ -5,6 +5,7 @@ import com.microservices.kafkaeventconsumer.entity.ItemEventEntity;
 import com.microservices.kafkaeventconsumer.entity.ItemEventTypeEntity;
 import com.microservices.kafkaeventconsumer.repository.ItemEventsRepository;
 import com.microservices.kafkaeventconsumer.service.ItemEventsService;
+import com.microservices.kafkaevents.dto.Item;
 import com.microservices.kafkaevents.dto.ItemEvent;
 import com.microservices.kafkaevents.dto.ItemEventType;
 import com.microservices.kafkaevents.util.ItemEventsUtil;
@@ -154,7 +155,7 @@ public class ItemEventsConsumerTest {
         // Prepare the update event DTO with different values
         String updatedName = "Harry Potter and the Goblet of Fire";
         String updatedOriginator = "Joanne Rowling";
-        com.microservices.kafkaevents.dto.Item updatedItemDto = new com.microservices.kafkaevents.dto.Item(itemId, updatedName, updatedOriginator);
+        Item updatedItemDto = new Item(itemId, updatedName, updatedOriginator);
         ItemEvent updatedItemEventDto = new ItemEvent(eventId, updatedItemDto, ItemEventType.UPDATE);
 
         // Act
@@ -254,6 +255,7 @@ public class ItemEventsConsumerTest {
                 ConsumerRecord<String, String> consumerRecord = KafkaTestUtils.getSingleRecord(consumer, retryTopic);
 
                 log.info("consumer record in retry topic: {}", consumerRecord.value());
+                Assertions.assertNotNull(consumerRecord.value());
                 consumerRecord.headers()
                     .forEach(header -> {
                         System.out.println("Header Key : " + header.key() + ", Header Value : " + new String(header.value()));
@@ -287,6 +289,7 @@ public class ItemEventsConsumerTest {
                 ConsumerRecord<String, String> consumerRecord = KafkaTestUtils.getSingleRecord(consumer, deadLetterTopic);
 
                 log.info("consumer record in dead letter topic: {}", consumerRecord.value());
+                Assertions.assertNotNull(consumerRecord.value());
                 consumerRecord.headers()
                         .forEach(header -> {
                             System.out.println("Header Key : " + header.key() + ", Header Value : " + new String(header.value()));

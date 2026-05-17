@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.dao.RecoverableDataAccessException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -20,6 +21,7 @@ public class ItemEventsService {
 
     private final ItemEventsRepository itemEventsRepository;
 
+    @Transactional
     public void processItemEvent(ConsumerRecord<String, ItemEvent> consumerRecord) {
         ItemEventEntity inputItemEvent = mapToItemEventEntity(consumerRecord.value());
         log.info("itemEventEntity: {}", inputItemEvent);
@@ -65,13 +67,17 @@ public class ItemEventsService {
     private ItemEventEntity updatedItemEvent(ItemEventEntity inputItemEvent, Optional<ItemEventEntity> itemEventEntityOptional) {
         ItemEventEntity itemEventEntity = itemEventEntityOptional.get();
 
-        itemEventEntity.setEventId(inputItemEvent.getEventId());
         itemEventEntity.setItemEventType(inputItemEvent.getItemEventType());
-        itemEventEntity.setItem(ItemEntity.builder()
-                .itemId(inputItemEvent.getItem().getItemId())
-                .itemName(inputItemEvent.getItem().getItemName())
-                .itemOriginator(inputItemEvent.getItem().getItemOriginator())
-                .build());
+        
+        ItemEntity existingItem = itemEventEntity.getItem();
+        if (existingItem != null) {
+            existingItem.setItemName(inputItemEvent.getItem().getItemName());
+            existingItem.setItemOriginator(inputItemEvent.getItem().getItemOriginator());
+        } else {
+            ItemEntity newItem = inputItemEvent.getItem();
+            newItem.setItemEvent(itemEventEntity);
+            itemEventEntity.setItem(newItem);
+        }
 
         return itemEventEntity;
     }

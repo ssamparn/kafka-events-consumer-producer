@@ -16,8 +16,8 @@ public class ItemEventsRetryConsumer {
     private final ItemEventsService itemEventsService;
 
     @KafkaListener(
-            topics = "${topics.retry}",
-            autoStartup = "${retryListener.startup:true}", // make it true if you want retry listener to work
+            topics = "${spring.topics.retry}",
+            autoStartup = "${listen.auto.start:true}", // make it true if you want retry listener to work
             groupId = "retry-listener-group"
     )
     public void onMessage(ConsumerRecord<String, ItemEvent> consumerRecord) {

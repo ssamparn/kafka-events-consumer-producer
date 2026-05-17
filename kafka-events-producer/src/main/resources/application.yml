@@ -11,8 +11,5 @@ spring:
   kafka:
     producer:
       bootstrap-servers: localhost:9092,localhost:9093,localhost:9094
-    admin:
-      properties:
-        bootstrap.servers: localhost:9092,localhost:9093,localhost:9094
     template:
       default-topic: item-event-topic

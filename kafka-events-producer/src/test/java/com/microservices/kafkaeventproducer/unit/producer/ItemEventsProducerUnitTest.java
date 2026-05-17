@@ -34,6 +34,7 @@ class ItemEventsProducerUnitTest {
 
     @Mock
     private KafkaTemplate<String, ItemEvent> kafkaTemplate;
+
     @InjectMocks
     private ItemEventsProducer itemProducer;
 
@@ -42,8 +43,8 @@ class ItemEventsProducerUnitTest {
         ReflectionTestUtils.setField(itemProducer, "topic", "item-event-topic");
         itemEvent = TestUtil.newItemEventRecordWithItemEventId();
 
-        producerRecord = new ProducerRecord<>("item-event-topic", itemEvent.getEventId().toString(), itemEvent);
-        recordMetadata = new RecordMetadata(new TopicPartition("item-event-topic", 1), 1, 1, 342, System.currentTimeMillis(), 1, 2);
+        producerRecord = new ProducerRecord<>("item-event-topic", itemEvent.eventId().toString(), itemEvent);
+        recordMetadata = new RecordMetadata(new TopicPartition("item-event-topic", 1), 1L, 0, System.currentTimeMillis(), 1, 2);
         sendResult = new SendResult<>(producerRecord, recordMetadata);
     }
 

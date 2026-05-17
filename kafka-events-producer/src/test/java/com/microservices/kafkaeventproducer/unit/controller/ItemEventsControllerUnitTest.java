@@ -1,16 +1,17 @@
 package com.microservices.kafkaeventproducer.unit.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.microservices.kafkaeventproducer.controller.ItemEventsController;
 import com.microservices.kafkaeventproducer.service.ItemEventsService;
 import com.microservices.kafkaeventproducer.util.TestUtil;
+import com.microservices.kafkaeventproducer.web.controller.ItemEventsController;
 import com.microservices.kafkaevents.dto.ItemEvent;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -28,11 +29,15 @@ public class ItemEventsControllerUnitTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @Autowired
     private ObjectMapper objectMapper;
 
-    @MockBean
+    @MockitoBean
     private ItemEventsService itemEventsService;
+
+    @BeforeEach
+    void setUp() {
+        objectMapper = new ObjectMapper();
+    }
 
     @Test
     void postItemEvent() throws Exception {

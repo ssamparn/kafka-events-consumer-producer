@@ -27,10 +27,11 @@ public class ItemEventsProducer {
     public CompletableFuture<SendResult<String, ItemEvent>> sendItemEvent(ItemEvent itemEvent) {
         ProducerRecord<String, ItemEvent> producerRecord = buildProducerRecord(itemEvent);
 
-        // with kafkaTemplate.send(), there are actually 2 rest calls happens behind the scene.
-        // 1. Blocking Call: To get the metadata of the kafka cluster => if the cluster is down, then max.block.ms is the config responsible for the timeout settings.
-        // 2. Async Call: To Send Message to kafka topic if the first call goes fine.
-
+        /* *
+         * With kafkaTemplate.send(), there are actually 2 rest calls happens behind the scene.
+         *    1. Blocking Call: To get the metadata of the kafka cluster => if the cluster is down, then max.block.ms is the config responsible for the timeout settings.
+         *    2. Async Call: To Send Message to kafka topic if the first call goes fine.
+         * */
         CompletableFuture<SendResult<String, ItemEvent>> sendResultCompletableFuture = kafkaTemplate.send(producerRecord);
 
         return sendResultCompletableFuture.whenComplete((successResult, exception) -> {
@@ -44,11 +45,11 @@ public class ItemEventsProducer {
 
     private ProducerRecord<String, ItemEvent> buildProducerRecord(ItemEvent itemEvent) {
         List<Header> requestHeader = List.of(new RecordHeader("item-event-source", "item-event-source".getBytes()));
-        return new ProducerRecord<>(topic, null, itemEvent.getEventId().toString(), itemEvent, requestHeader);
+        return new ProducerRecord<>(topic, null, itemEvent.eventId().toString(), itemEvent, requestHeader);
     }
 
     private void handleSuccess(SendResult<String, ItemEvent> result, ItemEvent event) {
-        log.info("Message sent successfully: key : {}, value: {}, partition: {}", event.getEventId(), event, result.getRecordMetadata().partition());
+        log.info("Message sent successfully: key : {}, value: {}, partition: {}", event.eventId(), event, result.getRecordMetadata().partition());
     }
 
     private void handleFailure(Throwable ex, ItemEvent event) {

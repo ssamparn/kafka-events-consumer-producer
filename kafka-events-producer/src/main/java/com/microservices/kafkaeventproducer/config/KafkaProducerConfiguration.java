@@ -12,7 +12,7 @@ import org.springframework.kafka.config.TopicBuilder;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
-import org.springframework.kafka.support.serializer.JsonSerializer;
+import org.springframework.kafka.support.serializer.JacksonJsonSerializer;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -21,7 +21,7 @@ import java.util.Map;
 @Configuration
 public class KafkaProducerConfiguration {
 
-    @Value("${spring.kafka.producer.bootstrap-servers: localhost:9092}")
+    @Value("${spring.kafka.producer.bootstrap-servers:localhost:9092}")
     private String bootstrapServers;
 
     @Value("${spring.kafka.template.default-topic}")
@@ -42,7 +42,7 @@ public class KafkaProducerConfiguration {
         producerConfigProps.put(ProducerConfig.ACKS_CONFIG, "all"); // acks: all is same as acks = -1
         producerConfigProps.put(ProducerConfig.RETRIES_CONFIG, 10);
         producerConfigProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
-        producerConfigProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
+        producerConfigProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JacksonJsonSerializer.class);
 
         return new DefaultKafkaProducerFactory<>(producerConfigProps);
     }
@@ -51,5 +51,4 @@ public class KafkaProducerConfiguration {
     public KafkaTemplate<String, ItemEvent> kafkaTemplate() {
         return new KafkaTemplate<>(itemEventProducerFactory());
     }
-
 }

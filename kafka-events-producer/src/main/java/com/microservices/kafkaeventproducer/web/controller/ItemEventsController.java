@@ -1,4 +1,4 @@
-package com.microservices.kafkaeventproducer.controller;
+package com.microservices.kafkaeventproducer.web.controller;
 
 import com.microservices.kafkaeventproducer.service.ItemEventsService;
 import com.microservices.kafkaevents.dto.ItemEvent;
@@ -26,7 +26,7 @@ public class ItemEventsController {
     public ResponseEntity<?> newItemEvent(@RequestBody @Valid ItemEvent itemEvent) {
         log.info("itemEvent to create: {}", itemEvent);
 
-        if (ItemEventType.CREATE != itemEvent.getItemEventType()) {
+        if (ItemEventType.CREATE != itemEvent.itemEventType()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Only CREATE event type is supported");
         }
 
@@ -41,19 +41,21 @@ public class ItemEventsController {
         log.info("itemEvent to update: {}", itemEvent);
 
         ResponseEntity<String> BAD_REQUEST = validateItemEvent(itemEvent);
-        if (BAD_REQUEST != null) return BAD_REQUEST;
+        if (BAD_REQUEST != null) {
+            return BAD_REQUEST;
+        }
 
-        itemEventsService.updateItem(itemEvent);
+        ItemEvent updatedItem = itemEventsService.updateItem(itemEvent);
 
-        return new ResponseEntity<>(itemEvent, HttpStatus.OK);
+        return new ResponseEntity<>(updatedItem, HttpStatus.OK);
     }
 
     private static ResponseEntity<String> validateItemEvent(ItemEvent itemEvent) {
-        if (itemEvent.getEventId() == null) {
+        if (itemEvent.eventId() == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Please pass the itemEventId");
         }
 
-        if (!ItemEventType.UPDATE.equals(itemEvent.getItemEventType()))  {
+        if (!ItemEventType.UPDATE.equals(itemEvent.itemEventType()))  {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Only UPDATE event type is supported");
         }
         return null;

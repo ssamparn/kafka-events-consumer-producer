@@ -23,6 +23,3 @@ spring:
         security:
           protocol: SSL
         ssl.endpoint.identification.algorithm:
-    admin:
-      properties:
-        bootstrap.servers: localhost:9091

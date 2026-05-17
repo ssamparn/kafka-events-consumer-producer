@@ -11,9 +11,9 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToOne;
+import jakarta.persistence.Version;
 import java.util.UUID;
 
 @Data
@@ -24,9 +24,11 @@ import java.util.UUID;
 public class ItemEventEntity {
 
     @Id
-    @GeneratedValue
     @Column(columnDefinition = "uuid")
     private UUID eventId;
+
+    @Version
+    private Integer version;
 
     @Enumerated(EnumType.STRING)
     private ItemEventTypeEntity itemEventType;

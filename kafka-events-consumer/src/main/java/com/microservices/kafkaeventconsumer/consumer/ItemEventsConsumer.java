@@ -16,7 +16,7 @@ public class ItemEventsConsumer {
     private final ItemEventsService itemEventsService;
 
     @KafkaListener(
-            topics = "${spring.kafka.template.default-topic}",
+            topics = "${spring.topics.default}",
             groupId = "${spring.kafka.consumer.group-id}",
             containerFactory = "kafkaListenerContainerFactory"
     )

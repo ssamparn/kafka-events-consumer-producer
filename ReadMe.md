@@ -17,4 +17,4 @@ $ docker-compose -f kafka-single-node-setup.yml up
 
 ## H2 Database
 
-- Access the h2 database in the following link - http://localhost:7070/h2-console
+- Access the h2 database in the following link - http://localhost:8081/h2-console

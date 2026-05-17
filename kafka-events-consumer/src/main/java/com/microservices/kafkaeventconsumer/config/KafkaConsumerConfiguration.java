@@ -3,22 +3,27 @@ package com.microservices.kafkaeventconsumer.config;
 import com.microservices.kafkaevents.dto.ItemEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.StringDeserializer;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.dao.RecoverableDataAccessException;
+import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
+import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.listener.DeadLetterPublishingRecoverer;
 import org.springframework.kafka.listener.DefaultErrorHandler;
 import org.springframework.kafka.support.ExponentialBackOffWithMaxRetries;
 import org.springframework.kafka.support.serializer.JacksonJsonDeserializer;
+import org.springframework.kafka.support.serializer.JacksonJsonSerializer;
 import org.springframework.util.backoff.FixedBackOff;
 
 import java.util.HashMap;
@@ -28,22 +33,40 @@ import java.util.Map;
 @Slf4j
 @Configuration
 @Profile("local")
+@EnableKafka
 public class KafkaConsumerConfiguration {
 
-    @Value("${spring.kafka.consumer.bootstrap-servers: localhost:9092}")
+    @Value("${spring.kafka.consumer.bootstrap-servers:localhost:9092}")
     private String bootstrapServers;
 
-    @Value("${spring.kafka.consumer.group-id: item-events-listener-group}")
+    @Value("${spring.kafka.consumer.group-id:item-events-listener-group}")
     private String groupId;
 
-    @Value("${topics.retry:item-event-topic.retry}")
+    @Value("${spring.topics.retry:item-event-topic.retry}")
     private String retryTopic;
 
-    @Value("${topics.dlt:item-event-topic.dlt}")
+    @Value("${spring.topics.dlt:item-event-topic.dlt}")
     private String deadLetterTopic;
 
-    @Autowired
-    private KafkaTemplate kafkaTemplate;
+    /**
+     * Producer configuration only to be used for sending messages to retry topic, dead letter topic and for integration tests as well.
+     * */
+    @Bean
+    public ProducerFactory<String, ItemEvent> itemEventProducerFactory() {
+        Map<String, Object> producerConfigProps = new HashMap<>();
+        producerConfigProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+        producerConfigProps.put(ProducerConfig.ACKS_CONFIG, "all"); // acks: all is same as acks = -1
+        producerConfigProps.put(ProducerConfig.RETRIES_CONFIG, 10);
+        producerConfigProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+        producerConfigProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JacksonJsonSerializer.class);
+
+        return new DefaultKafkaProducerFactory<>(producerConfigProps);
+    }
+
+    @Bean
+    public KafkaTemplate<String, ItemEvent> kafkaTemplate() {
+        return new KafkaTemplate<>(itemEventProducerFactory());
+    }
 
     @Bean
     public ConsumerFactory<String, ItemEvent> consumerFactory() {
@@ -59,17 +82,17 @@ public class KafkaConsumerConfiguration {
     }
 
     @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, ItemEvent> kafkaListenerContainerFactory() {
+    public ConcurrentKafkaListenerContainerFactory<String, ItemEvent> kafkaListenerContainerFactory(KafkaTemplate <String, ItemEvent> kafkaTemplate) {
         ConcurrentKafkaListenerContainerFactory<String, ItemEvent> kafkaContainerFactory = new ConcurrentKafkaListenerContainerFactory<>();
         kafkaContainerFactory.setConsumerFactory(consumerFactory());
 //        kafkaContainerFactory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL); // here we are overriding the acknowledgement mode of kafka.
 //        Default acknowledgement mode of kafka is BATCH
         kafkaContainerFactory.setConcurrency(3);
-        kafkaContainerFactory.setCommonErrorHandler(errorHandler());
+        kafkaContainerFactory.setCommonErrorHandler(errorHandler(kafkaTemplate));
         return kafkaContainerFactory;
     }
 
-    public DefaultErrorHandler errorHandler() {
+    public DefaultErrorHandler errorHandler(KafkaTemplate<String, ItemEvent> kafkaTemplate) {
         // Exponential BackOff settings
         ExponentialBackOffWithMaxRetries exponentialBackOff = new ExponentialBackOffWithMaxRetries(2);
         exponentialBackOff.setInitialInterval(1_000L);
@@ -82,7 +105,7 @@ public class KafkaConsumerConfiguration {
         // Error Handler with the Fixed BackOff
         // Provide either fixed backoff config or exponential backoff config
         DefaultErrorHandler defaultErrorHandler = new DefaultErrorHandler(
-                publishingRecoverer(),
+                publishingRecoverer(kafkaTemplate),
                 fixedBackOff
 //                exponentialBackOff
         );
@@ -100,7 +123,7 @@ public class KafkaConsumerConfiguration {
         return defaultErrorHandler;
     }
 
-    public DeadLetterPublishingRecoverer publishingRecoverer() {
+    public DeadLetterPublishingRecoverer publishingRecoverer(KafkaTemplate<String, ItemEvent> kafkaTemplate) {
         DeadLetterPublishingRecoverer recoverer = new DeadLetterPublishingRecoverer(kafkaTemplate, (r, e) -> {
             log.error("Exception in publishingRecoverer : {} ", e.getMessage(), e);
             if (e.getCause() instanceof RecoverableDataAccessException) { // thrown if the event id is "b9c21087-3391-46d4-91b7-5b493c057089"

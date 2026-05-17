@@ -32,6 +32,11 @@
       <option name="url" value="https://maven.rabobank.nl/nexus/content/groups/public" />
     </remote-repository>
     <remote-repository>
+      <option name="id" value="snapshots" />
+      <option name="name" value="snapshots" />
+      <option name="url" value="https://nexus3.rabobank.nl/repository/maven-public-snapshots/" />
+    </remote-repository>
+    <remote-repository>
       <option name="id" value="jitpack.io" />
       <option name="name" value="jitpack.io" />
       <option name="url" value="https://maven.rabobank.nl/nexus/content/groups/public" />
@@ -40,6 +45,11 @@
       <option name="id" value="rib-snapshot" />
       <option name="name" value="rib-snapshot" />
       <option name="url" value="https://maven.rabobank.nl/nexus/content/groups/public" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="NexusCloud" />
+      <option name="name" value="NexusCloud" />
+      <option name="url" value="https://repo.nexuscloud.aws.rabo.cloud/repository/gr-maven2-91/" />
     </remote-repository>
     <remote-repository>
       <option name="id" value="jboss.community" />

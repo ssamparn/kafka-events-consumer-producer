@@ -2,28 +2,22 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
+
 	<parent>
-		<groupId>org.springframework.boot</groupId>
-		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.1.2</version>
-		<relativePath/>
+		<groupId>com.kafka.events</groupId>
+		<artifactId>kafka-events-consumer-producer</artifactId>
+		<version>1.0.0</version>
 	</parent>
 
-	<groupId>com.kafka.events</groupId>
 	<artifactId>kafka-events-consumer</artifactId>
-	<version>1.0.0</version>
 	<name>Kafka Events - Consumer</name>
 	<packaging>jar</packaging>
 	<description>Kafka Events Consumer with Spring Boot</description>
 
-	<properties>
-		<java.version>17</java.version>
-	</properties>
-
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-web</artifactId>
+			<artifactId>spring-boot-starter-webmvc</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -45,13 +39,9 @@
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
-			<optional>true</optional>
+			<scope>provided</scope>
 		</dependency>
-		<dependency>
-			<groupId>com.kafka.events</groupId>
-			<artifactId>kafka-events-common</artifactId>
-			<version>${project.version}</version>
-		</dependency>
+		<!-- TEST -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
@@ -61,6 +51,11 @@
 			<groupId>org.springframework.kafka</groupId>
 			<artifactId>spring-kafka-test</artifactId>
 			<scope>test</scope>
+		</dependency>
+		<!-- INTERNAL -->
+		<dependency>
+			<groupId>com.kafka.events</groupId>
+			<artifactId>kafka-events-common</artifactId>
 		</dependency>
 	</dependencies>
 
@@ -78,7 +73,10 @@
 					</excludes>
 				</configuration>
 			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+			</plugin>
 		</plugins>
 	</build>
-
 </project>

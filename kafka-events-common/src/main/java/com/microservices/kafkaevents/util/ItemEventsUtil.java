@@ -5,49 +5,56 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microservices.kafkaevents.dto.Item;
 import com.microservices.kafkaevents.dto.ItemEvent;
 import com.microservices.kafkaevents.dto.ItemEventType;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
 import java.util.UUID;
 
-public class ItemEventsUtil {
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public final class ItemEventsUtil {
 
-    public static Item itemRecord() {
-        return new Item(UUID.randomUUID(), "Harry Potter","JK Rowling" );
+    private static final String DEFAULT_NAME = "Harry Potter";
+    private static final String DEFAULT_ORIGINATOR = "JK Rowling";
+
+    // Item factory methods
+    public static Item validItem() {
+        return new Item(UUID.randomUUID(), DEFAULT_NAME, DEFAULT_ORIGINATOR);
     }
 
-    public static Item itemRecordWithInvalidValues() {
+    public static Item invalidItem() {
         return new Item(null, "","Kafka Using Spring Boot" );
     }
 
-    public static ItemEvent itemEventRecord() {
-        return new ItemEvent(null, itemRecord(), ItemEventType.CREATE);
+    // ItemEvent factory methods
+    public static ItemEvent createItemEvent() {
+        return new ItemEvent(null, validItem(), ItemEventType.CREATE);
     }
 
-    public static ItemEvent newItemEventRecordWithItemEventId() {
-        return new ItemEvent(UUID.randomUUID(), itemRecord(), ItemEventType.CREATE);
+    public static ItemEvent createItemEventWithEventId() {
+        return new ItemEvent(UUID.randomUUID(), validItem(), ItemEventType.CREATE);
     }
 
-    public static ItemEvent itemEventRecordUpdate() {
-        return new ItemEvent(UUID.randomUUID(), itemRecord(), ItemEventType.UPDATE);
+    public static ItemEvent updateItemEvent() {
+        return new ItemEvent(UUID.randomUUID(), validItem(), ItemEventType.UPDATE);
     }
 
-    public static ItemEvent itemEventRecordUpdateWithProvidedEventId(UUID eventId) {
-        return new ItemEvent(eventId, itemRecord(), ItemEventType.UPDATE);
+    public static ItemEvent updateItemEventWithEventId(UUID eventId) {
+        return new ItemEvent(eventId, validItem(), ItemEventType.UPDATE);
     }
 
-    public static ItemEvent itemEventRecordUpdateWithNullItemEventId(){
-        return new ItemEvent(null,  itemRecord(), ItemEventType.UPDATE);
+    public static ItemEvent updateItemEventWithNullEventId() {
+        return new ItemEvent(null,  validItem(), ItemEventType.UPDATE);
     }
 
-    public static ItemEvent itemEventRecordWithInvalidItem(){
-        return new ItemEvent(null, itemRecordWithInvalidValues(), ItemEventType.CREATE);
+    public static ItemEvent createItemEventWithInvalidItem() {
+        return new ItemEvent(null, invalidItem(), ItemEventType.CREATE);
     }
 
-    public static ItemEvent parseItemEventRecord(ObjectMapper objectMapper , String json) {
-
+    public static ItemEvent toItemEvent(ObjectMapper objectMapper, String json) {
         try {
             return objectMapper.readValue(json, ItemEvent.class);
         } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
+            throw new IllegalArgumentException("Invalid ItemEvent JSON String", e);
         }
     }
 }

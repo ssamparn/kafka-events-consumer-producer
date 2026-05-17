@@ -51,13 +51,13 @@ public class ItemEventsService {
         log.info("itemEvent Received: {}", event);
 
         ItemEventEntity entity = new ItemEventEntity();
-        entity.setEventId(event.getEventId());
+        entity.setEventId(event.eventId());
         entity.setItem(ItemEntity.builder()
-                        .itemId(event.getItem().getItemId())
-                        .itemName(event.getItem().getItemName())
-                        .itemOriginator(event.getItem().getItemOriginator())
+                        .itemId(event.item().itemId())
+                        .itemName(event.item().itemName())
+                        .itemOriginator(event.item().itemOriginator())
                 .build());
-        entity.setItemEventType(ItemEventTypeEntity.valueOf(event.getItemEventType().toString()));
+        entity.setItemEventType(ItemEventTypeEntity.valueOf(event.itemEventType().toString()));
 
         return entity;
     }

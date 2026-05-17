@@ -22,7 +22,6 @@ public class ItemEventsConsumer {
     )
     public void onMessage(ConsumerRecord<String, ItemEvent> consumerRecord) {
         log.info("consumer record in direct listener: {}", consumerRecord);
-
         itemEventsService.processItemEvent(consumerRecord);
     }
 }

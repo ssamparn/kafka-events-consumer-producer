@@ -1,18 +1,19 @@
 # Local Kafka Cluster setup with 3 brokers using Docker Compose
 
-## Set up broker and zookeeper
+## Set up Kafka broker in KRaft Mode
 
 - Navigate to the path where the **kafka-cluster-setup.yml** is located.
 
 - Run the below command and this will spin up a kafka cluster with 3 brokers.
 
 ```bash
+$ cd workspace/
 $ docker-compose -f kafka-cluster-setup.yml up
 ```
 
 ## Produce and Consume the Messages
 
-- Log in to the container by running the below command.
+#### Log in to the container by running the below command.
 
 ```bash
 $ docker ps
@@ -20,42 +21,55 @@ $ docker exec -it <container-name> bash
 $ docker exec -it kafka-1 bash
 ```
 
-- Create topic with the replication factor as 3
-
+#### Create a Kafka topic using the **kafka-topics** command with the replication factor as 3
+> **kafka-1:19092** refers to the **KAFKA_ADVERTISED_LISTENERS**
 ```bash
 $ kafka-topics --bootstrap-server kafka-1:19092 \
   --create \
   --topic test-topic \
-  --replication-factor 1 --partitions 1
+  --replication-factor 3 --partitions 1
 ```
 
-- Produce Messages to the topic.
+#### Verify the created topic.
+```bash
+$ kafka-topics --list --bootstrap-server kafka-1:19092
+```
+
+#### Produce Messages to the topic.
 
 ```bash
 $ kafka-console-producer --bootstrap-server kafka-1:19092 \
   --topic test-topic
 ```
 
-- Consume Messages from the topic.
+#### Consume Messages from the topic.
 
 ```bash
-$ kafka-console-consumer --bootstrap-server kafka-1:9092 \
+$ kafka-console-consumer --bootstrap-server kafka-1:19092 \
   --topic test-topic \
   --from-beginning
 ```
 
-- Consume Messages from dead letter topic.
+#### Consume Messages from item-event topic.
 
 ```bash
-$ kafka-console-consumer --bootstrap-server kafka-1:29092 \
+$ kafka-console-consumer --bootstrap-server kafka-1:19092 \
+--topic item-event-topic \
+--from-beginning
+```
+
+#### Consume Messages from dead letter topic.
+
+```bash
+$ kafka-console-consumer --bootstrap-server kafka-1:19092 \
 --topic item-event-topic.dlt \
 --from-beginning
 ```
 
-- Consume Messages from retry topic.
+#### Consume Messages from retry topic.
 
 ```bash
-$ kafka-console-consumer --bootstrap-server kafka-1:29092 \
+$ kafka-console-consumer --bootstrap-server kafka-1:19092 \
 --topic item-event-topic.retry \
 --from-beginning
 ```

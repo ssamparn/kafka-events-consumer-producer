@@ -1,4 +1,4 @@
-# Local kafka set up using Docker Compose
+# Local single node kafka set up using Docker Compose
 
 ## Set up Kafka broker in KRaft Mode
 
@@ -41,12 +41,36 @@ $ kafka-console-producer --bootstrap-server kafka:19092 \
   --topic test-topic
 ```
 
-#### Consume Messages from the topic.
+#### Consume Messages from the test-topic.
 
 ```bash
 $ kafka-console-consumer --bootstrap-server kafka:19092 \
   --topic test-topic \
   --from-beginning
+```
+
+#### Consume Messages from item-event topic.
+
+```bash
+$ kafka-console-consumer --bootstrap-server kafka-1:19092 \
+--topic item-event-topic \
+--from-beginning
+```
+
+#### Consume Messages from dead letter topic.
+
+```bash
+$ kafka-console-consumer --bootstrap-server kafka-1:19092 \
+--topic item-event-topic.dlt \
+--from-beginning
+```
+
+#### Consume Messages from retry topic.
+
+```bash
+$ kafka-console-consumer --bootstrap-server kafka-1:19092 \
+--topic item-event-topic.retry \
+--from-beginning
 ```
 
 ### Producer and Consume the Messages With Key and Value

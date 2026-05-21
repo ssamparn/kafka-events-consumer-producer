@@ -1,4 +1,4 @@
-# Local Kafka Cluster setup with 3 brokers using Docker Compose
+# Multi Node Kafka Cluster Setup using Docker Compose
 
 ## Set up Kafka broker in KRaft Mode
 
@@ -8,7 +8,7 @@
 
 ```bash
 $ cd workspace/
-$ docker-compose -f kafka-cluster-setup.yml up
+$ docker-compose -f multi-node-kafka-cluster.yml up
 ```
 
 ## Produce and Consume the Messages
@@ -22,7 +22,7 @@ $ docker exec -it kafka-1 bash
 ```
 
 #### Create a Kafka topic using the **kafka-topics** command with the replication factor as 3
-> **kafka-1:19092** refers to the **KAFKA_ADVERTISED_LISTENERS**
+> **kafka-1:19092** refers to the **KAFKA_ADVERTISED_LISTENERS** in the multi-node-kafka-cluster.yml file
 ```bash
 $ kafka-topics --bootstrap-server kafka-1:19092 \
   --create \
@@ -93,7 +93,8 @@ $ docker exec -it kafka-2 bash
 - Shutdown the kafka cluster
 
 ```bash
-$ docker-compose -f kafka-cluster-setup.yml down
+$ cd workspace/
+$ docker-compose -f multi-node-kafka-cluster.yml down
 ```
 
 ### Setting up min.insync.replica

@@ -1,4 +1,4 @@
-# Local single node kafka set up using Docker Compose
+# Single Node Kafka Cluster Setup using Docker Compose
 
 ## Set up Kafka broker in KRaft Mode
 
@@ -6,7 +6,7 @@
 
 ```bash
 $ cd workspace/
-$ docker-compose -f kafka-single-node-setup.yml up
+$ docker-compose -f single-node-kafka-cluster.yml up
 ```
 
 ### Produce and Consume the Messages
@@ -20,7 +20,7 @@ $ docker exec -it kafka bash
 ```
 
 #### Create a Kafka topic using the **kafka-topics** command.
-> **kafka:19092** refers to the **KAFKA_ADVERTISED_LISTENERS** in the kafka-single-node-setup.yml file.
+> **kafka:19092** refers to the **KAFKA_ADVERTISED_LISTENERS** in the single-node-kafka-cluster.yml file
 
 ```bash
 $ kafka-topics --bootstrap-server kafka:19092 \

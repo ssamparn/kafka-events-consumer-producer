@@ -4,7 +4,7 @@
 This repository has the complete code related to kafka producers/consumers using spring boot.
 
 ## Kafka SetUp
-- [Setup-Kafka-Using-Docker](setup-single-node-kafka.md)
+- [Setup-Kafka-Using-Docker](setup-single-node-kafka-cluster.md)
 
 - [Setup-Kafka](https://github.com/dilipsundarraj1/kafka-for-developers-using-spring-boot/blob/master/SetUpKafka.md)
 

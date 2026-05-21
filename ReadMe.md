@@ -3,7 +3,7 @@
 This repository has a sample implementation related to kafka producers/consumers using spring boot.
 
 ```bash
-$ docker-compose -f kafka-single-node-setup.yml up
+$ docker-compose -f single-node-kafka-cluster.yml up
 ```
 
 
